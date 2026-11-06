@@ -1,7 +1,8 @@
 """Renders the NetBlade icon files and the README banner from the icon in netblade/ui/icons.py.
 
 Run from the project folder: python assets/make_assets.py
-Writes assets/icon/ (netblade.svg, netblade.png, netblade.ico, netblade.icns) and assets/banner.png.
+Writes assets/icon/ (netblade.svg, netblade.png, netblade.ico, netblade.icns), assets/banner.png
+and assets/social-card.png (the GitHub social preview).
 The banner uses the Segoe UI and Cascadia Mono or Consolas fonts, so run it on Windows.
 """
 
@@ -139,10 +140,53 @@ def write_banner(path: Path) -> None:
     image.save(str(path))
 
 
+def write_social_card(path: Path) -> None:
+    """GitHub social preview, 1280 x 640 px. All content stays 80 px inside each edge (GitHub's crop margin)."""
+    width, height = 1280, 640
+    image = QImage(width, height, QImage.Format.Format_ARGB32)
+    image.fill(
+        QColor("#0f0f10")
+    )  # Full bleed: sites crop and round the card themselves.
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+
+    icon_size, gap = 168, 40
+    title = font(["Segoe UI", "Inter", "Helvetica Neue"], 112, QFont.Weight.DemiBold)
+    title.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 98)
+    title_w = QFontMetrics(title).horizontalAdvance("NetBlade")
+    left = (width - (icon_size + gap + title_w)) / 2
+    icon_top = 150
+    renderer.render(painter, QRectF(left, icon_top, icon_size, icon_size))
+    painter.setFont(title)
+    painter.setPen(QColor("#ededed"))
+    # Baseline set so the cap height sits centred on the icon.
+    painter.drawText(QPointF(left + icon_size + gap - 4, icon_top + 124), "NetBlade")
+
+    def centred(text: str, text_font: QFont, color: str, baseline: float) -> None:
+        painter.setFont(text_font)
+        painter.setPen(QColor(color))
+        x = (width - QFontMetrics(text_font).horizontalAdvance(text)) / 2
+        painter.drawText(QPointF(x, baseline), text)
+
+    mono = ["Cascadia Mono", "Consolas", "SF Mono", "Menlo"]
+    centred(TAGLINE, font(mono, 34, QFont.Weight.Normal), "#a1a1a6", 420)
+    centred(
+        "Windows · macOS · Linux", font(mono, 24, QFont.Weight.Normal), "#6e6e73", 476
+    )
+    painter.end()
+    image.save(str(path))
+
+
 ICON_DIR.mkdir(exist_ok=True)
 (ICON_DIR / "netblade.svg").write_text(APP_ICON_SVG, encoding="utf-8")
 render(1024).save(str(ICON_DIR / "netblade.png"))
 write_ico(ICON_DIR / "netblade.ico")
 write_icns(ICON_DIR / "netblade.icns")
 write_banner(ASSETS / "banner.png")
-print("Wrote", ", ".join(p.name for p in sorted(ICON_DIR.iterdir())), "and banner.png")
+write_social_card(ASSETS / "social-card.png")
+print(
+    "Wrote",
+    ", ".join(p.name for p in sorted(ICON_DIR.iterdir())),
+    "banner.png and social-card.png",
+)
