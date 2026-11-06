@@ -18,6 +18,11 @@ NetBlade has eleven tools:
 
 NetBlade never needs administrator rights. Every tool works for a normal user.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/ping-and-trace-dark.png">
+  <img src="assets/screenshots/ping-and-trace-light.png" alt="NetBlade with Ping and trace open: the tool sidebar, a latency chart and the hop table" width="840">
+</picture>
+
 ## Download
 
 1. Go to the [Releases page](https://github.com/TariqMK/NetBlade/releases).
@@ -78,6 +83,11 @@ NetBlade follows the light or dark appearance of your system.
 
 ### DNS lookup
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/dns-lookup-dark.png">
+  <img src="assets/screenshots/dns-lookup-light.png" alt="DNS lookup showing four MX records for example.com from 1.1.1.1" width="840">
+</picture>
+
 1. Type a name in the name field, for example `example.com`.
 2. Select the record type: A, AAAA, CNAME, MX, NS, TXT, SOA, SRV, PTR or CAA.
 3. Select the nameserver:
@@ -93,6 +103,11 @@ MX records show in preference order. SRV records show in priority order. To copy
 
 ### IP config
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/ip-config-dark.png">
+  <img src="assets/screenshots/ip-config-light.png" alt="IP config showing adapter cards for Ethernet, Wi-Fi and a virtual adapter" width="840">
+</picture>
+
 The tool reads the configuration when you open it.
 
 1. Select **Adapters** to see one card for each connected adapter. A card shows the IPv4 address, subnet mask, default gateway, DNS servers, DHCP server, MAC address, IPv6 addresses, DNS suffix and DHCP state.
@@ -106,6 +121,11 @@ On Windows, IP config runs `ipconfig /all`. On macOS, it runs `ifconfig`, `route
 **Note:** The **Adapters** view needs Windows in English. In other languages, NetBlade shows **Raw output**.
 
 ### curl
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/curl-dark.png">
+  <img src="assets/screenshots/curl-light.png" alt="curl showing a 200 OK response, the timing bar and a formatted JSON body" width="840">
+</picture>
 
 The curl tool runs the curl program of your system with the options you set. The command box always shows the exact command. You can copy it and run it in a terminal.
 
@@ -137,6 +157,11 @@ The curl tool runs the curl program of your system with the options you set. The
 
 ### Multi-ping
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/multi-ping-dark.png">
+  <img src="assets/screenshots/multi-ping-light.png" alt="Multi-ping with green, amber and red host tiles and the status changes list" width="840">
+</picture>
+
 Multi-ping pings up to 10 hosts at the same time, without stopping. Each host shows as a tile. The colour of the tile shows the state of the host.
 
 1. Type a host name or IPv4 address in the field, then select **Add**. To add more than one host, paste a list. Separate the hosts with new lines, commas, semicolons or spaces.
@@ -166,6 +191,11 @@ You can name a host at any time, also while it is pinged. The name shows as the 
 To remove a friendly name, clear the field and press Enter. Or right-click the tile and select **Remove friendly name**.
 
 ### nmap
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/nmap-dark.png">
+  <img src="assets/screenshots/nmap-light.png" alt="The built-in scanner showing open ports on a /24 network" width="840">
+</picture>
 
 The nmap tool scans hosts for open ports. It has two modes: **Built-in scanner** and **nmap**.
 
@@ -208,6 +238,11 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 
 ### Subnet calculator
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/subnet-calculator-dark.png">
+  <img src="assets/screenshots/subnet-calculator-light.png" alt="Subnet calculator showing details, binary view and a split into /24 networks" width="840">
+</picture>
+
 1. Type an address with a prefix length or a mask. For example: `192.168.1.10/24`, `10.0.0.1 255.255.255.0` or `2001:db8::1/64`.
 2. To change the prefix length, select a value in the prefix list. The list shows the mask (IPv4) or the number of addresses (IPv6).
 3. Read the **Details** card:
@@ -235,6 +270,11 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 
 ### TLS certificate
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/tls-certificate-dark.png">
+  <img src="assets/screenshots/tls-certificate-light.png" alt="TLS certificate showing a trusted chain, TLS versions and certificate cards" width="840">
+</picture>
+
 1. Type a server, for example `example.com`, `example.com:8443` or `https://example.com`. The default port is 443.
 2. Select **Check**, or press Enter.
 3. Read the result line:
@@ -248,6 +288,11 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 **Note:** "Trusted" means trusted by this computer. NetBlade uses the same check as the operating system, as a browser does.
 
 ### Whois
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/whois-dark.png">
+  <img src="assets/screenshots/whois-light.png" alt="Whois showing the network, owner and contacts of an IP address" width="840">
+</picture>
 
 Whois uses RDAP, the replacement for the whois protocol. NetBlade finds the registry that holds the record in the IANA directory, then asks that registry.
 
@@ -266,6 +311,11 @@ Whois uses RDAP, the replacement for the whois protocol. NetBlade finds the regi
 
 ### MAC lookup
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/mac-lookup-dark.png">
+  <img src="assets/screenshots/mac-lookup-light.png" alt="MAC lookup showing vendors, a locally administered address, multicast and broadcast" width="840">
+</picture>
+
 MAC lookup finds the vendor of a network device from its MAC address. It uses the IEEE vendor list.
 
 1. The first time, select **Download vendor list**. The list is about 5 MB. After the download, lookups work offline. To get the newest list later, select **Update vendor list**.
@@ -281,6 +331,11 @@ NetBlade explains MAC addresses that have no vendor:
 To copy rows, select them and press **Ctrl+C**, or select **Copy** to copy all rows.
 
 ### Notepad
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/notepad-dark.png">
+  <img src="assets/screenshots/notepad-light.png" alt="Notepad with site visit notes in a monospace font" width="840">
+</picture>
 
 The Notepad keeps temporary notes in a monospace font, so columns of addresses and command output line up.
 
@@ -359,6 +414,16 @@ Check code style with:
 ```bash
 ruff check .
 ```
+
+## Update the Screenshots
+
+The README screenshots are in `assets/screenshots/`, in a light and a dark version. To make them again from the current source:
+
+```bash
+python assets/make_screenshots.py
+```
+
+The script fills each tool with sample data and saves 22 PNG files. It sends no network traffic and does not read your adapters, notes or settings. The sidebar shows the newest release tag.
 
 ## Creating a Release
 
