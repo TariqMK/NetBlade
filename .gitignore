@@ -1,0 +1,32 @@
+# Private folder (context file, notes, test files, personal builds)
+Meta/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Tools and caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Build output (PyInstaller)
+build/
+dist/
+
+# Local configuration and secrets
+.env
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
