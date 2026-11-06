@@ -8,7 +8,7 @@ import pytest
 from PySide6.QtCore import QSettings, QStandardPaths
 from PySide6.QtWidgets import QApplication
 
-from netblade.ui import tasks
+from netblade.app import release_qt_objects
 
 
 @pytest.fixture(scope="session")
@@ -26,9 +26,9 @@ def qapp(tmp_path_factory):
     app.setOrganizationName("NetBlade-tests")
     app.setApplicationName("NetBlade-tests")
     yield app
-    # Tasks still running when the tests end must not report into Qt while it shuts down.
-    # Without this, CI on Linux crashed with a segmentation fault after all tests passed.
-    tasks.shutdown()
+    # Stop background tasks and destroy every widget while Qt is still running. Without this,
+    # CI on Linux crashed with a segmentation fault after all tests had passed.
+    release_qt_objects()
 
 
 @pytest.fixture

@@ -1,8 +1,9 @@
 """Main window of NetBlade: the sidebar with the app name, version and tools, and the tool pages."""
 
+import gc
 import sys
 
-from PySide6.QtCore import QSettings, QSize, Qt, Signal
+from PySide6.QtCore import QCoreApplication, QEvent, QSettings, QSize, Qt, Signal
 from PySide6.QtGui import QAction, QFont, QImageReader, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -283,9 +284,8 @@ class MainWindow(QMainWindow):
 def main(argv: list[str]) -> int:
     """Start the app. `--self-test` builds the window, checks bundled modules, prints the version and exits."""
     app = QApplication(argv)
-    app.setOrganizationName(
-        APP_NAME
-    )  # QSettings keeps the sidebar order under NetBlade/NetBlade.
+    # QSettings keeps the sidebar order under NetBlade/NetBlade.
+    app.setOrganizationName(APP_NAME)
     app.setApplicationName(APP_NAME)
     theme.apply(app)
     window = MainWindow()
@@ -296,23 +296,43 @@ def main(argv: list[str]) -> int:
 
     app.styleHints().colorSchemeChanged.connect(on_scheme_changed)
 
-    if "--self-test" in argv:
-        # Used by the release workflow to prove the packaged build starts and has the right version.
-        dns_lookup.self_check()
-        tlscheck.self_check()
-        if b"svg" not in QImageReader.supportedImageFormats():
-            # The style sheet draws combo-box chevrons and check marks from SVG files.
-            if sys.stdout is not None:
-                print("Qt SVG image plugin is missing from this build")
-            return 1
-        if sys.stdout is not None:
-            print(f"{APP_NAME} {window.version_label.text()}")
-        return 0
+    try:
+        if "--self-test" in argv:
+            return _self_test(window)
+        window.show()
+        return app.exec()
+    finally:
+        release_qt_objects()
 
-    window.show()
-    code = app.exec()
-    tasks.shutdown()  # Background tasks still running must not report into Qt while it shuts down.
-    return code
+
+def _self_test(window: MainWindow) -> int:
+    """Used by the release workflow to prove the packaged build starts and has the right version."""
+    dns_lookup.self_check()
+    tlscheck.self_check()
+    if b"svg" not in QImageReader.supportedImageFormats():
+        # The style sheet draws combo-box chevrons and check marks from SVG files.
+        if sys.stdout is not None:
+            print("Qt SVG image plugin is missing from this build")
+        return 1
+    if sys.stdout is not None:
+        print(f"{APP_NAME} {window.version_label.text()}")
+    return 0
+
+
+def release_qt_objects() -> None:
+    """Destroy every window and widget while Qt is still running. Call before the program ends.
+
+    When Python exits it frees objects in no fixed order. A widget kept alive only by a reference loop
+    (for example a button connected to a lambda that uses its page) could be freed after the
+    QApplication, which crashes on Linux ("shared QObject was deleted directly").
+    Background tasks are stopped first, so none of them reports into a widget that is going away.
+    """
+    tasks.shutdown()
+    gc.collect()  # Frees widgets that only reference loops keep alive, while Qt can still delete them.
+    for widget in QApplication.topLevelWidgets():
+        widget.deleteLater()
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+    gc.collect()
 
 
 def run() -> None:
