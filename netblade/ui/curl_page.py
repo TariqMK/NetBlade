@@ -6,7 +6,6 @@ from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QAction, QColor, QFont, QIntValidator, QPainter
 from PySide6.QtWidgets import (
     QApplication,
-    QButtonGroup,
     QCheckBox,
     QComboBox,
     QFrame,
@@ -41,6 +40,7 @@ from netblade.core.curl import (
 )
 from netblade.ui import theme
 from netblade.ui.tasks import run_in_thread
+from netblade.ui.widgets import caption, segmented
 
 HEADERS_VIEW, BODY_VIEW, VERBOSE_VIEW = 0, 1, 2
 
@@ -116,30 +116,6 @@ class TimingBar(QWidget):
         painter.end()
 
 
-def _segmented(labels: list[str], parent: QWidget) -> tuple[QWidget, QButtonGroup]:
-    host = QWidget()
-    host.setObjectName("segmented")
-    host.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
-    layout = QHBoxLayout(host)
-    layout.setContentsMargins(2, 2, 2, 2)
-    layout.setSpacing(2)
-    group = QButtonGroup(parent)
-    for index, text in enumerate(labels):
-        button = QPushButton(text)
-        button.setObjectName("segment")
-        button.setCheckable(True)
-        group.addButton(button, index)
-        layout.addWidget(button)
-    group.button(0).setChecked(True)
-    return host, group
-
-
-def _caption(text: str) -> QLabel:
-    label = QLabel(text)
-    label.setProperty("role", "secondary")
-    return label
-
-
 class CurlPage(QWidget):
     def __init__(self) -> None:
         super().__init__()
@@ -196,12 +172,12 @@ class CurlPage(QWidget):
         options_row.addWidget(self.http_version)
         target_row = QHBoxLayout()
         target_row.setSpacing(8)
-        target_row.addWidget(_caption("Connect to IP"))
+        target_row.addWidget(caption("Connect to IP"))
         target_row.addWidget(self.connect_ip)
         target_row.addSpacing(16)
-        target_row.addWidget(_caption("Timeout"))
+        target_row.addWidget(caption("Timeout"))
         target_row.addWidget(self.timeout)
-        target_row.addWidget(_caption("s"))
+        target_row.addWidget(caption("s"))
         target_row.addStretch()
 
         # Any other curl option
@@ -279,21 +255,21 @@ class CurlPage(QWidget):
         # Results
         self.status = QLabel()
         self.status.setFont(theme.ui_font(15, QFont.Weight.Medium))
-        self.meta = _caption("")
+        self.meta = caption("")
         self.meta.setWordWrap(True)
         summary = QHBoxLayout()
         summary.setSpacing(16)
         summary.addWidget(self.status)
         summary.addWidget(self.meta, 1)
         self.timing = TimingBar()
-        segmented, self.view_group = _segmented(["Headers", "Body", "Verbose"], self)
+        view_switch, self.view_group = segmented(["Headers", "Body", "Verbose"], self)
         self.view_group.idClicked.connect(self._show_view)
         self.copy_view = QPushButton("Copy")
         self.copy_view.clicked.connect(
             lambda: QApplication.clipboard().setText(self.viewer.toPlainText())
         )
         view_row = QHBoxLayout()
-        view_row.addWidget(segmented)
+        view_row.addWidget(view_switch)
         view_row.addStretch()
         view_row.addWidget(self.copy_view)
         self.viewer = QPlainTextEdit()

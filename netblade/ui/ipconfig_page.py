@@ -234,6 +234,7 @@ class IpConfigPage(QWidget):
         while self.cards_grid.count():
             item = self.cards_grid.takeAt(0)
             if item.widget():
+                item.widget().hide()  # deleteLater alone leaves it visible until the next event loop pass.
                 item.widget().deleteLater()
         if self._config is None:
             return

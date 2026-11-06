@@ -250,6 +250,9 @@ def _style_sheet(t: Tokens) -> str:
     QWidget#segmented {{ background: {t.sidebar}; border: 1px solid {hairline}; border-radius: 10px; }}
 
     QCheckBox {{ color: {t.text_secondary}; spacing: 8px; }}
+    QToolButton#tileButton {{ background: transparent; border: 1px solid transparent; border-radius: 6px; }}
+    QToolButton#tileButton:hover {{ background: rgba(0, 0, 0, 40); }}
+    QToolButton#tileButton:focus {{ border: 1px solid {t.accent}; }}
     QCheckBox::indicator {{
         width: 14px; height: 14px; border: 1px solid {strong}; border-radius: 4px; background: {t.card};
     }}

@@ -1,15 +1,18 @@
 # NetBlade
 
-NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, and how your network adapters are set up. No command line is necessary.
+NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, and how your network adapters and subnets are set up. No command line is necessary.
 
-NetBlade has four tools:
+NetBlade has seven tools:
 
 - **Ping and trace:** a continuous traceroute with loss and latency for each hop.
 - **DNS lookup:** queries for one record type, from your system nameserver or a nameserver you choose.
 - **IP config:** your adapter configuration, the same data as `ipconfig /all`.
 - **curl:** an HTTP request built from a form. It shows the curl command, the response and the time of each phase.
+- **Multi-ping:** continuous ping of up to 10 hosts. Each host shows as a green, amber or red tile.
+- **nmap:** a port scan with the built-in scanner, or with nmap when it is installed.
+- **Subnet calculator:** network details, binary view and subnet split for IPv4 and IPv6.
 
-NetBlade does not need administrator rights.
+NetBlade does not need administrator rights. Some nmap scan types do (see nmap).
 
 ## Download
 
@@ -32,7 +35,22 @@ NetBlade does not need administrator rights.
 
 ## Use
 
-Select a tool in the sidebar. Or press **Ctrl+1** for Ping and trace, **Ctrl+2** for DNS lookup, **Ctrl+3** for IP config and **Ctrl+4** for curl. The version shows next to the app name at the top of the sidebar.
+Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+7**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. The version shows next to the app name at the top of the sidebar.
+
+The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap and Subnet calculator.
+
+### Change the order of the tools
+
+1. Drag a tool up or down in the sidebar. A line shows where the tool will go.
+2. Release the mouse button.
+
+To move a tool with the keyboard, select it, then press **Alt+Up** or **Alt+Down**. You can also right-click a tool and select **Move up** or **Move down**.
+
+To go back to the default order, right-click the sidebar and select **Reset order**.
+
+NetBlade keeps the order when you close it.
+
+**Note:** The **Ctrl+1** to **Ctrl+7** shortcuts follow the new order.
 
 NetBlade follows the light or dark appearance of your system.
 
@@ -113,14 +131,91 @@ The curl tool runs the curl program of your system with the options you set. The
 
 **Note:** On Windows, the command starts with `curl.exe`. In Windows PowerShell, `curl` runs Invoke-WebRequest, not curl.
 
+### Multi-ping
+
+Multi-ping pings up to 10 hosts at the same time, without stopping. Each host shows as a tile. The colour of the tile shows the state of the host.
+
+1. Type a host name or IPv4 address in the field, then select **Add**. To add more than one host, paste a list. Separate the hosts with new lines, commas, semicolons or spaces.
+2. Select the ping interval: **Every 0.5 s**, **Every 1 s**, **Every 2 s** or **Every 5 s**.
+3. Select **Start all**.
+4. Read the tiles:
+   - **Green (Up):** the last 3 pings replied, and none of the last 10 pings was lost.
+   - **Amber (Unstable):** some pings were lost, but not 3 in a row. A host also stays amber for 10 pings after it comes back from Down.
+   - **Red (Down):** the last 3 pings were lost, or the name can't be resolved.
+   - **Neutral:** not started, or paused.
+5. Each tile shows the last reply time, the IP address or DNS name, how long the host has been in its state, the loss, the average time and the number of pings sent. The bars at the bottom show the last 30 pings. A flat mark is a lost ping.
+6. To stop or start one host, select the pause or play button on its tile. To remove a host, select the **×** button.
+7. Select **Stop all** to stop all pings.
+
+The **Status changes** list shows each change with the time, for example `13:42:11  printer-2f (192.168.1.40)  Unstable → Down`. Select **Copy** to copy the list, or **Clear** to empty it.
+
+**Note:** **Start all** clears the results of all hosts. The host list is not kept when you close NetBlade.
+
+### nmap
+
+The nmap tool scans hosts for open ports. It has two modes: **Built-in scanner** and **nmap**.
+
+**Caution:** Scan only networks that you own or have permission to test.
+
+Type the targets in the target field. You can use host names, IPv4 addresses, networks such as `192.168.1.0/24`, and ranges such as `192.168.1.10-50` or `10.0.0.1-10.0.0.20`. Separate targets with spaces or commas.
+
+#### Built-in scanner
+
+The built-in scanner needs no other software and no administrator rights. It tries a TCP connection to each port, and it can ping each host.
+
+1. Select the ports: **Top 20 ports**, **Top 100 ports** (the same list as `nmap -F`), **Web ports**, **Windows ports** or **Custom ports**. For custom ports, type a list such as `22,80,443,8000-8100`.
+2. Select the timeout: **Timeout 0.5 s**, **Timeout 1 s** or **Timeout 2 s**.
+3. Keep **Ping hosts** selected to find hosts that answer ping but have no open port.
+4. Select **Show hosts with no reply** to also list hosts that did not answer.
+5. Select **Scan**, or press Enter. To stop the scan, select **Cancel**.
+
+The built-in scanner scans up to 1,024 hosts at a time, for example a /22 network.
+
+#### nmap mode
+
+nmap mode runs nmap with the options you set. The command box shows the exact command. You can copy it and run it in a terminal.
+
+**Note:** NetBlade does not include nmap, because the nmap licence does not allow it. Install nmap from [nmap.org](https://nmap.org/download.html), then select **Check again**. On Windows, the nmap installer also installs Npcap.
+
+1. Select the scan type: **Default scan**, **TCP connect (-sT)**, **SYN scan (-sS)**, **UDP scan (-sU)** or **Ping sweep only (-sn)**.
+2. Select the ports: **Top 1000 ports**, **Top 100 ports (-F)**, **All ports (-p-)** or **Custom ports**.
+3. Select the timing: **Polite (-T2)**, **Normal (-T3)**, **Aggressive (-T4)** or **Insane (-T5)**. The default is **Aggressive (-T4)**.
+4. Select the options you need: **Service versions (-sV)**, **OS detection (-O)**, **Default scripts (-sC)** and **Skip host discovery (-Pn)**.
+5. To use any other nmap option, type it in **More options**. Or select **Suggestions** and select a common option.
+6. Select **Scan**. To stop the scan, select **Cancel**.
+
+**Note:** SYN scan, UDP scan and OS detection need administrator rights. Large networks and service detection can take several minutes.
+
+#### Results
+
+The results table shows one row for each open port: **Host**, **Name**, **Port**, **State**, **Service** and **Details**. A host that is up with no open ports gets one row. In nmap mode, **Details** shows the product and version, script output, the MAC address and vendor, and the OS. Select **nmap output** to see the full nmap output.
+
+To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy all rows.
+
+### Subnet calculator
+
+1. Type an address with a prefix length or a mask. For example: `192.168.1.10/24`, `10.0.0.1 255.255.255.0` or `2001:db8::1/64`.
+2. To change the prefix length, select a value in the prefix list. The list shows the mask (IPv4) or the number of addresses (IPv6).
+3. Read the **Details** card:
+   - IPv4: address, network, netmask, wildcard mask, broadcast, first and last usable address, usable hosts, total addresses, address type, class and reverse DNS zone.
+   - IPv6: address, expanded address, network, prefix length, first and last address, number of addresses, address type and reverse DNS zone.
+4. Read the **Binary** card. Network bits show in the accent colour. Host bits show in grey.
+5. To split the network, select a prefix in **Split into**. The table shows each subnet with its first and last usable address, broadcast address and number of hosts.
+
+**Note:** A /31 network has 2 usable addresses (point-to-point links, RFC 3021). A /32 network has 1. IPv6 has no broadcast address, so all addresses are usable.
+
+**Note:** The split table shows the first 1,024 subnets.
+
 ## Known limitations
 
-- Ping and trace does not trace to IPv6 addresses.
+- Ping and trace and Multi-ping use IPv4 only.
 - On Linux, Ping and trace needs unprivileged ICMP. Some distributions block it. If the tool shows an ICMP error, ask your administrator to allow your group in `net.ipv4.ping_group_range`.
-- Ping and trace on macOS and Linux is not yet tested on real systems.
+- Ping and trace and Multi-ping on macOS and Linux are not yet tested on real systems.
 - The curl tool needs curl on the system. Windows 10 and later and macOS include it. On Linux, install the `curl` package if it is missing.
 - The curl tool shows the first 1 MB of a body.
 - The copied curl command uses double quotes on Windows. In PowerShell, a value that contains `"` or `$` can need changes.
+- The built-in scanner scans TCP only, IPv4 only, and up to 1,024 hosts at a time. It does not detect versions or operating systems.
+- nmap mode needs nmap installed on the system. nmap mode is not yet tested with a real nmap installation.
 
 ## Run From Source
 
@@ -152,7 +247,7 @@ A source run shows the development version `v0.0.0.dev0`.
 pytest
 ```
 
-The tests send no network traffic. The traceroute tests use a simulated path. The curl tests run curl on a local file and on a closed local port.
+The tests send no network traffic. The traceroute tests use a simulated path. The curl tests run curl on a local file and on a closed local port. The port scan test scans a port that the test opens on this computer. The nmap tests use sample nmap output, so nmap is not necessary.
 
 Check code style with:
 

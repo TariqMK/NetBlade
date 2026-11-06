@@ -15,6 +15,18 @@ _PATHS = {
     '<rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/>'
     '<path d="M12 12V8"/>',
     "terminal": '<path d="m7 11 2-2-2-2"/><path d="M11 13h4"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>',
+    "grid": '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/>'
+    '<rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+    "pause": '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
+    "play": '<polygon points="6 3 20 12 6 21 6 3"/>',
+    "x": '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    "radar": '<path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/>'
+    '<path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/>'
+    '<path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/>'
+    '<path d="m13.41 10.59 5.66-5.66"/>',
+    "calculator": '<rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/>'
+    '<line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/>'
+    '<path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>',
 }
 
 ICON_PX = 16
@@ -43,3 +55,8 @@ def nav_icon(name: str, color: str, selected_color: str) -> QIcon:
     icon.addPixmap(_pixmap(name, color), QIcon.Mode.Normal)
     icon.addPixmap(_pixmap(name, selected_color), QIcon.Mode.Selected)
     return icon
+
+
+def icon(name: str, color: str) -> QIcon:
+    """A single-colour icon, for example for buttons drawn on a coloured tile."""
+    return QIcon(_pixmap(name, color))

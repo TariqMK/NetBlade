@@ -2,15 +2,17 @@
 
 import sys
 
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QFont, QImageReader, QKeySequence, QShortcut
+from PySide6.QtCore import QSettings, QSize, Qt, Signal
+from PySide6.QtGui import QAction, QFont, QImageReader, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QApplication,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMenu,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -23,7 +25,10 @@ from netblade.ui.curl_page import CurlPage
 from netblade.ui.dns_page import DnsPage
 from netblade.ui.icons import ICON_PX, nav_icon
 from netblade.ui.ipconfig_page import IpConfigPage
+from netblade.ui.multiping_page import MultiPingPage
 from netblade.ui.ping_trace import PingTracePage
+from netblade.ui.scan_page import ScanPage
+from netblade.ui.subnet_page import SubnetPage
 
 SIDEBAR_WIDTH = 216
 TOOLS = [
@@ -31,7 +36,31 @@ TOOLS = [
     ("DNS lookup", "globe"),
     ("IP config", "network"),
     ("curl", "terminal"),
+    ("Multi-ping", "grid"),
+    ("nmap", "radar"),
+    ("Subnet calculator", "calculator"),
 ]
+DEFAULT_ORDER = [name for name, _icon in TOOLS]
+ORDER_KEY = "sidebar/tool_order"
+ToolRole = Qt.ItemDataRole.UserRole + 1
+
+
+def tool_order(
+    saved: list[str] | None, default: list[str] = DEFAULT_ORDER
+) -> list[str]:
+    """The saved sidebar order, without tools that no longer exist, plus new tools at the end."""
+    known = list(dict.fromkeys(name for name in (saved or []) if name in default))
+    return known + [name for name in default if name not in known]
+
+
+class ToolList(QListWidget):
+    """Sidebar list that reports every completed drag-and-drop, so the new order can be saved."""
+
+    order_changed = Signal()
+
+    def dropEvent(self, event) -> None:
+        super().dropEvent(event)
+        self.order_changed.emit()
 
 
 def display_version() -> str:
@@ -42,8 +71,9 @@ def display_version() -> str:
 class MainWindow(QMainWindow):
     """Top-level NetBlade window."""
 
-    def __init__(self) -> None:
+    def __init__(self, settings: QSettings | None = None) -> None:
         super().__init__()
+        self.settings = settings if settings is not None else QSettings()
         self.setWindowTitle(APP_NAME)
         self.setMinimumSize(880, 560)
         self.resize(1120, 720)
@@ -60,13 +90,22 @@ class MainWindow(QMainWindow):
         brand.addWidget(self.version_label, 0, Qt.AlignmentFlag.AlignBaseline)
         brand.addStretch()
 
-        self.nav = QListWidget()
+        self.nav = ToolList()
         self.nav.setObjectName("nav")
         self.nav.setIconSize(QSize(ICON_PX, ICON_PX))
         self.nav.setFont(theme.ui_font())
         self.nav.setAccessibleName("Tools")
-        for name, _icon in TOOLS:
-            QListWidgetItem(name, self.nav)
+        self.nav.setAccessibleDescription(
+            "Drag a tool, or press Alt+Up or Alt+Down, to change the order."
+        )
+        # Drag and drop moves items inside the list only. Each item keeps its tool name in ToolRole,
+        # so pages follow their item to its new position.
+        self.nav.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.nav.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.nav.setDropIndicatorShown(True)
+        self.nav.order_changed.connect(self._save_order)
+        self.nav.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.nav.customContextMenuRequested.connect(self._nav_menu)
 
         sidebar = QWidget()
         sidebar.setObjectName("sidebar")
@@ -82,9 +121,22 @@ class MainWindow(QMainWindow):
         self.dns_page = DnsPage()
         self.ipconfig_page = IpConfigPage()
         self.curl_page = CurlPage()
+        self.multiping_page = MultiPingPage()
+        self.scan_page = ScanPage()
+        self.subnet_page = SubnetPage()
+        pages = (
+            self.ping_page,
+            self.dns_page,
+            self.ipconfig_page,
+            self.curl_page,
+            self.multiping_page,
+            self.scan_page,
+            self.subnet_page,
+        )
+        self.tool_pages = dict(zip(DEFAULT_ORDER, pages, strict=True))
         self.pages = QStackedWidget()
         self.pages.setObjectName("pages")
-        for page in (self.ping_page, self.dns_page, self.ipconfig_page, self.curl_page):
+        for page in pages:
             self.pages.addWidget(page)
 
         root = QWidget()
@@ -95,24 +147,110 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(self.pages, 1)
         self.setCentralWidget(root)
 
-        self.nav.currentRowChanged.connect(self._show_tool)
+        self.nav.currentItemChanged.connect(self._show_tool)
+        self._fill_nav(tool_order(self._saved_order()))
         self.nav.setCurrentRow(0)
+        # Ctrl+1 to Ctrl+7 follow the sidebar order, so they change when the tools are reordered.
         for number in range(len(TOOLS)):
             shortcut = QShortcut(QKeySequence(f"Ctrl+{number + 1}"), self)
             shortcut.activated.connect(lambda row=number: self.nav.setCurrentRow(row))
+        for keys, step in (("Alt+Up", -1), ("Alt+Down", 1)):
+            shortcut = QShortcut(QKeySequence(keys), self.nav)
+            shortcut.activated.connect(lambda step=step: self.move_current(step))
         self.apply_theme()
 
-    def _show_tool(self, row: int) -> None:
-        if row < 0:
+    # Sidebar order
+
+    def _saved_order(self) -> list[str] | None:
+        value = self.settings.value(ORDER_KEY)
+        if isinstance(
+            value, str
+        ):  # QSettings returns a one-item list as a plain string.
+            return [value]
+        return list(value) if value else None
+
+    def tool_names(self) -> list[str]:
+        return [self.nav.item(row).data(ToolRole) for row in range(self.nav.count())]
+
+    def _fill_nav(self, order: list[str]) -> None:
+        current = (
+            self.nav.currentItem().data(ToolRole) if self.nav.currentItem() else None
+        )
+        self.nav.blockSignals(True)
+        self.nav.clear()
+        for name in order:
+            item = QListWidgetItem(name, self.nav)
+            item.setData(ToolRole, name)
+            # No ItemIsDropEnabled: dropping on an item moves the dragged item, it never replaces one.
+            item.setFlags(
+                Qt.ItemFlag.ItemIsEnabled
+                | Qt.ItemFlag.ItemIsSelectable
+                | Qt.ItemFlag.ItemIsDragEnabled
+            )
+        self.nav.blockSignals(False)
+        if current is not None:
+            self.nav.setCurrentRow(order.index(current))
+
+    def _save_order(self, *_args) -> None:
+        self.settings.setValue(ORDER_KEY, self.tool_names())
+
+    def move_current(self, step: int) -> None:
+        """Move the selected tool up (-1) or down (+1) in the sidebar."""
+        row = self.nav.currentRow()
+        target = row + step
+        if row < 0 or not 0 <= target < self.nav.count():
             return
-        self.pages.setCurrentIndex(row)
-        self.setWindowTitle(f"{TOOLS[row][0]} – {APP_NAME}")
+        self.nav.blockSignals(True)  # The page stays the same while its item moves.
+        item = self.nav.takeItem(row)
+        self.nav.insertItem(target, item)
+        self.nav.blockSignals(False)
+        self.nav.setCurrentRow(target)
+        self._save_order()
+
+    def reset_order(self) -> None:
+        self.settings.remove(ORDER_KEY)
+        self._fill_nav(DEFAULT_ORDER)
+        self.apply_theme()
+
+    def _nav_menu(self, position) -> None:
+        clicked = self.nav.itemAt(position)
+        if clicked is not None:
+            self.nav.setCurrentItem(clicked)
+        row = self.nav.currentRow()
+        menu = QMenu(self.nav)
+        for text, step, enabled in (
+            ("Move up", -1, row > 0),
+            ("Move down", 1, 0 <= row < self.nav.count() - 1),
+        ):
+            action = QAction(text, menu)
+            action.setEnabled(enabled)
+            action.triggered.connect(
+                lambda _checked=False, step=step: self.move_current(step)
+            )
+            menu.addAction(action)
+        menu.addSeparator()
+        reset = QAction("Reset order", menu)
+        reset.setEnabled(self.tool_names() != DEFAULT_ORDER)
+        reset.triggered.connect(self.reset_order)
+        menu.addAction(reset)
+        menu.exec(self.nav.viewport().mapToGlobal(position))
+
+    def _show_tool(self, item: QListWidgetItem | None, _previous=None) -> None:
+        if item is None:
+            return
+        name = item.data(ToolRole)
+        self.pages.setCurrentWidget(self.tool_pages[name])
+        self.setWindowTitle(f"{name} – {APP_NAME}")
 
     def apply_theme(self) -> None:
         """Re-tint icons and repaint custom-drawn widgets after the system appearance changes."""
         t = theme.current()
-        for row, (_name, icon) in enumerate(TOOLS):
-            self.nav.item(row).setIcon(nav_icon(icon, t.text_muted, t.accent))
+        icons = dict(TOOLS)
+        for row in range(self.nav.count()):
+            item = self.nav.item(row)
+            item.setIcon(nav_icon(icons[item.data(ToolRole)], t.text_muted, t.accent))
+        self.multiping_page.apply_theme()
+        self.subnet_page.apply_theme()
         self.update()
         for widget in self.findChildren(QWidget):
             widget.update()
@@ -120,12 +258,17 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         self.ping_page.shutdown()
         self.curl_page.shutdown()
+        self.multiping_page.shutdown()
+        self.scan_page.shutdown()
         super().closeEvent(event)
 
 
 def main(argv: list[str]) -> int:
     """Start the app. `--self-test` builds the window, checks bundled modules, prints the version and exits."""
     app = QApplication(argv)
+    app.setOrganizationName(
+        APP_NAME
+    )  # QSettings keeps the sidebar order under NetBlade/NetBlade.
     app.setApplicationName(APP_NAME)
     theme.apply(app)
     window = MainWindow()
