@@ -24,7 +24,7 @@ from netblade.core import dns_lookup, tlscheck
 from netblade.ui import tasks, theme
 from netblade.ui.curl_page import CurlPage
 from netblade.ui.dns_page import DnsPage
-from netblade.ui.icons import ICON_PX, nav_icon
+from netblade.ui.icons import ICON_PX, app_icon, nav_icon
 from netblade.ui.ipconfig_page import IpConfigPage
 from netblade.ui.mac_page import MacPage
 from netblade.ui.multiping_page import MultiPingPage
@@ -287,6 +287,7 @@ def main(argv: list[str]) -> int:
     # QSettings keeps the sidebar order under NetBlade/NetBlade.
     app.setOrganizationName(APP_NAME)
     app.setApplicationName(APP_NAME)
+    app.setWindowIcon(app_icon())
     theme.apply(app)
     window = MainWindow()
 

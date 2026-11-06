@@ -142,14 +142,19 @@ jobs:
           printf '# Single source of the NetBlade version. The release workflow overwrites this on the build runner.\n__version__ = "%s"\n' "$VERSION" > netblade/_version.py
           cat netblade/_version.py
 
-      - name: Build (Windows, Linux)
-        if: runner.os != 'macOS'
+      # The .exe file icon. Linux executables have no file icon; the app sets its window icon at runtime.
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: pyinstaller --noconfirm --clean --onefile --windowed --name "$APP_NAME" --icon assets/icon/netblade.ico --paths . netblade/__main__.py
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
         run: pyinstaller --noconfirm --clean --onefile --windowed --name "$APP_NAME" --paths . netblade/__main__.py
 
       # macOS ships a single .app bundle; --onefile is not used for .app bundles.
       - name: Build (macOS)
         if: runner.os == 'macOS'
-        run: pyinstaller --noconfirm --clean --windowed --name "$APP_NAME" --osx-bundle-identifier com.tariqmk.netblade --paths . netblade/__main__.py
+        run: pyinstaller --noconfirm --clean --windowed --name "$APP_NAME" --icon assets/icon/netblade.icns --osx-bundle-identifier com.tariqmk.netblade --paths . netblade/__main__.py
 
       # Starts the packaged app headless: proves Qt plugins and libraries were bundled and the version is right.
       - name: Check packaged app
@@ -160,6 +165,9 @@ jobs:
             Linux)   exe="dist/$APP_NAME" ;;
           esac
           [ -f "$exe" ] || { echo "Build produced no executable at $exe"; exit 1; }
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            ls "dist/$APP_NAME.app/Contents/Resources/"*.icns || { echo "App bundle has no .icns icon"; exit 1; }
+          fi
           if [ "$RUNNER_OS" = "Windows" ]; then
             # Windowed .exe has no console output, so check the exit code only.
             "$exe" --self-test

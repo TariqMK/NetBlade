@@ -1,4 +1,4 @@
-# NetBlade
+![NetBlade. Eleven network tools. One window.](assets/banner.png)
 
 NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, who owns an address or domain, whether a certificate is valid, and how your network adapters and subnets are set up. No command line is necessary.
 

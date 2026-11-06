@@ -70,3 +70,36 @@ def nav_icon(name: str, color: str, selected_color: str) -> QIcon:
 def icon(name: str, color: str) -> QIcon:
     """A single-colour icon, for example for buttons drawn on a coloured tile."""
     return QIcon(_pixmap(name, color))
+
+
+# The NetBlade app icon: ping rings with a fine 45° cut. Single source for the window icon and for
+# assets/icon (assets/make_assets.py renders the .ico, .icns and PNG files from this string).
+APP_ICON_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="-75 -75 150 150">
+  <rect x="-74.5" y="-74.5" width="149" height="149" rx="34" fill="#0f0f10" stroke="#232325" stroke-width="1"/>
+  <circle r="44" fill="none" stroke="#5c5c61" stroke-width="11"/>
+  <circle r="25" fill="none" stroke="#a1a1a6" stroke-width="11"/>
+  <circle r="9" fill="#ededed"/>
+  <line x1="-50" y1="50" x2="50" y2="-50" stroke="#0f0f10" stroke-width="3.5"/>
+</svg>
+"""
+APP_ICON_SIZES = (16, 20, 24, 32, 40, 48, 64, 128, 256)
+
+
+def render_app_icon(size: int) -> QPixmap:
+    """The app icon as a square pixmap of `size` px."""
+    renderer = QSvgRenderer(QByteArray(APP_ICON_SVG.encode()))
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    renderer.render(painter)
+    painter.end()
+    return pixmap
+
+
+def app_icon() -> QIcon:
+    """The window and taskbar icon, rendered at each common size so Qt never scales a bitmap."""
+    result = QIcon()
+    for size in APP_ICON_SIZES:
+        result.addPixmap(render_app_icon(size))
+    return result
