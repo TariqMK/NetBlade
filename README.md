@@ -39,7 +39,7 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
 
 ## Use
 
-Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. The eleventh tool has no shortcut. The version shows next to the app name at the top of the sidebar.
+Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. The eleventh tool has no shortcut. The version shows next to the app name at the top of the sidebar. Select the version to check for updates.
 
 The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup and Notepad.
 
@@ -293,6 +293,21 @@ The Notepad keeps temporary notes in a monospace font, so columns of addresses a
 
 NetBlade keeps the notes when you close it. They are stored in your user folder.
 
+### Check for updates
+
+NetBlade checks for updates only when you ask. It never downloads or installs anything.
+
+1. Select the version next to the app name at the top of the sidebar, for example **v1.3.0**. To use the keyboard, press **Tab** until the version is selected, then press **Space**.
+2. Wait while the version shows **checking…**. The check takes a few seconds at most.
+3. Read the result:
+   - **NetBlade is up to date.** You have the latest release.
+   - **NetBlade vX.Y.Z is available.** Select **Show Details…** to read what changed. Select **Open release page** to download the new version from GitHub.
+   - If the check fails, a message tells you why, for example no internet connection.
+
+When a newer release is found, the version stays in the accent colour until you restart NetBlade.
+
+**Note:** GitHub allows about 60 checks per hour from one network. If you reach the limit, try again an hour later.
+
 ## Known limitations
 
 - Ping and trace and Multi-ping use IPv4 only.
@@ -329,7 +344,7 @@ Requires Python 3.13 or later.
    python -m netblade
    ```
 
-A source run shows the development version `v0.0.0.dev0`.
+A source run shows the development version `v0.0.0.dev0`. **Check for updates** then reports a development build and names the latest release.
 
 ## Run Tests
 
