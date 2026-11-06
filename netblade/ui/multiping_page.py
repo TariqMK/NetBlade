@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMenu,
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
@@ -28,10 +29,12 @@ from PySide6.QtWidgets import (
 )
 
 from netblade.core.multiping import (
+    MAX_ALIAS_LENGTH,
     MAX_HOSTS,
     HostState,
     PingTarget,
     change_line,
+    clean_alias,
     parse_hosts,
     status_line,
 )
@@ -114,28 +117,114 @@ class MultiPingWorker(QObject):
                 )
 
 
+class AliasEdit(QLineEdit):
+    """Inline field for a friendly name. Enter saves, Esc cancels."""
+
+    cancelled = Signal()
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            self.cancelled.emit()
+            return
+        super().keyPressEvent(event)
+
+
 class HostTile(QWidget):
-    """One host: a tile filled with its status colour, with Pause and Remove buttons."""
+    """One host: a tile filled with its status colour, with Rename, Pause and Remove buttons."""
 
     PAD = 14
+    BUTTONS_WIDTH = 94  # Space kept free for the three buttons at the top right.
 
-    def __init__(self, target: PingTarget, on_pause, on_remove) -> None:
+    def __init__(self, target: PingTarget, on_pause, on_remove, on_rename) -> None:
         super().__init__()
         self.target = target
+        self._on_pause = on_pause
+        self._on_remove = on_remove
+        self._on_rename = on_rename
+        self._editor: AliasEdit | None = None
+        self._editing = (
+            False  # Enter and losing focus both commit; only the first one counts.
+        )
         self.setMinimumSize(TILE_MIN_WIDTH, TILE_MIN_HEIGHT)
-        self.setAccessibleName(target.host)
+        self.rename_button = QToolButton(self)
+        self.rename_button.setToolTip("Rename: give this host a friendly name")
+        self.rename_button.clicked.connect(self.start_rename)
         self.pause_button = QToolButton(self)
         self.pause_button.clicked.connect(lambda: on_pause(self.target))
         self.remove_button = QToolButton(self)
         self.remove_button.setToolTip("Remove host")
-        self.remove_button.setAccessibleName(f"Remove {target.host}")
         self.remove_button.clicked.connect(lambda: on_remove(self.target))
-        for button in (self.pause_button, self.remove_button):
+        for button in (self.rename_button, self.pause_button, self.remove_button):
             button.setObjectName("tileButton")
             button.setIconSize(QSize(14, 14))
             button.setFixedSize(26, 26)
             button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.refresh()
+
+    # Renaming
+
+    def start_rename(self) -> None:
+        """Show the inline name field over the title. Pinging continues while it is open."""
+        if self._editor is None:
+            self._editor = AliasEdit(self)
+            self._editor.setMaxLength(MAX_ALIAS_LENGTH)
+            self._editor.setAccessibleName(f"Friendly name for {self.target.host}")
+            self._editor.returnPressed.connect(self._commit_rename)
+            self._editor.editingFinished.connect(
+                self._commit_rename
+            )  # Also saves when focus moves away.
+            self._editor.cancelled.connect(self._close_editor)
+        self._editor.setPlaceholderText(f"Friendly name for {self.target.host}")
+        self._editor.setText(self.target.alias or "")
+        self._place_editor()
+        self._editing = True
+        self._editor.show()
+        self._editor.setFocus()
+        self._editor.selectAll()
+
+    def _place_editor(self) -> None:
+        if self._editor is not None:
+            self._editor.setGeometry(
+                self.PAD - 6,
+                self.PAD - 6,
+                self.width() - 2 * self.PAD - self.BUTTONS_WIDTH + 6,
+                32,
+            )
+
+    def _commit_rename(self) -> None:
+        if self._editor is None or not self._editing:
+            return
+        alias = clean_alias(self._editor.text())
+        self._close_editor()
+        if alias != self.target.alias:
+            self._on_rename(self.target, alias)
+
+    def _close_editor(self) -> None:
+        self._editing = False
+        if self._editor is not None:
+            self._editor.hide()
+        self.setFocus()
+
+    def mouseDoubleClickEvent(self, event) -> None:
+        if event.position().y() <= self.PAD + 24:  # Double-click on the name renames.
+            self.start_rename()
+        else:
+            super().mouseDoubleClickEvent(event)
+
+    def contextMenuEvent(self, event) -> None:
+        menu = QMenu(self)
+        menu.addAction("Rename…", self.start_rename)
+        if self.target.alias:
+            menu.addAction(
+                "Remove friendly name", lambda: self._on_rename(self.target, None)
+            )
+        menu.addSeparator()
+        menu.addAction(
+            "Resume pinging" if self.target.paused else "Pause pinging",
+            lambda: self._on_pause(self.target),
+        )
+        menu.addAction("Remove host", lambda: self._on_remove(self.target))
+        menu.exec(event.globalPos())
 
     def _colors(self) -> tuple[QColor | None, str, str]:
         if self.target.paused or self.target.state not in STATE_COLORS:
@@ -146,15 +235,21 @@ class HostTile(QWidget):
 
     def refresh(self) -> None:
         _fill, text, _secondary = self._colors()
-        paused = self.target.paused
+        target = self.target
+        paused = target.paused
+        label = target.label
+        self.setAccessibleName(" ".join([label, *target.addresses()]))
+        self.rename_button.setIcon(icons.icon("pencil", text))
+        self.rename_button.setAccessibleName(f"Rename {label}")
         self.pause_button.setIcon(icons.icon("play" if paused else "pause", text))
         self.pause_button.setToolTip("Resume pinging" if paused else "Pause pinging")
         self.pause_button.setAccessibleName(
-            f"{'Resume' if paused else 'Pause'} {self.target.host}"
+            f"{'Resume' if paused else 'Pause'} {label}"
         )
         self.remove_button.setIcon(icons.icon("x", text))
+        self.remove_button.setAccessibleName(f"Remove {label}")
         self.setAccessibleDescription(
-            f"{status_line(self.target)}. Last reply {_rtt(self.target.last_ms)}"
+            f"{status_line(target)}. Last reply {_rtt(target.last_ms)}"
         )
         self.update()
 
@@ -163,6 +258,8 @@ class HostTile(QWidget):
         top = self.PAD - 4
         self.remove_button.move(self.width() - self.PAD - 22, top)
         self.pause_button.move(self.width() - self.PAD - 52, top)
+        self.rename_button.move(self.width() - self.PAD - 82, top)
+        self._place_editor()
 
     def paintEvent(self, event) -> None:
         t = theme.current()
@@ -183,11 +280,12 @@ class HostTile(QWidget):
         width = self.width() - 2 * pad
         painter.setPen(QColor(text))
         painter.setFont(theme.ui_font(14, QFont.Weight.Medium))
+        title_width = width - self.BUTTONS_WIDTH
         name = painter.fontMetrics().elidedText(
-            target.host, Qt.TextElideMode.ElideRight, width - 64
+            target.label, Qt.TextElideMode.ElideRight, title_width
         )
         painter.drawText(
-            QRectF(pad, pad, width - 64, 20), Qt.AlignmentFlag.AlignVCenter, name
+            QRectF(pad, pad, title_width, 20), Qt.AlignmentFlag.AlignVCenter, name
         )
 
         big = max(22, min(44, int(self.height() * 0.16)))
@@ -201,12 +299,8 @@ class HostTile(QWidget):
 
         painter.setPen(QColor(secondary))
         painter.setFont(theme.mono_font(theme.SMALL_PX))
-        detail = (
-            target.name if target.name and target.name != target.host else target.ip
-        )
-        lines = [status_line(target)]
-        if detail and detail != target.host:
-            lines[0] = f"{detail} · {lines[0]}"
+        # The address always shows, so a friendly name never hides which host this is.
+        lines = [" · ".join([*target.addresses(), status_line(target)])]
         if target.sent:
             avg = target.avg_ms
             stats = f"{target.loss_percent:.0f}% loss · avg {_rtt(avg) if avg is not None else '—'} · {target.sent:,} sent"
@@ -356,7 +450,9 @@ class MultiPingPage(QWidget):
         for host in new[: max(room, 0)]:
             target = PingTarget(host)
             self.targets.append(target)
-            self.tiles[id(target)] = HostTile(target, self.toggle_pause, self.remove)
+            self.tiles[id(target)] = HostTile(
+                target, self.toggle_pause, self.remove, self.rename
+            )
             self._lookup_name(target)
         self.add_field.clear()
         self._relayout()
@@ -397,6 +493,16 @@ class MultiPingPage(QWidget):
         self._update_message()
         if not self.targets and self.running:
             self.stop()
+
+    def rename(self, target: PingTarget, alias: str | None) -> None:
+        """Set or clear a host's friendly name. Pinging and results carry on unchanged."""
+        target.alias = alias
+        stamp = time.strftime("%H:%M:%S")
+        if alias:
+            self._log(f"{stamp}  {target.host} is now called {alias}")
+        else:
+            self._log(f"{stamp}  {target.host} friendly name removed")
+        self._refresh_tile(target)
 
     def toggle_pause(self, target: PingTarget) -> None:
         target.paused = not target.paused

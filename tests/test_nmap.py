@@ -43,6 +43,8 @@ SAMPLE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 
 def test_default_request():
     assert build_args(NmapRequest(targets="192.168.1.0/24")) == [
+        "--unprivileged",
+        "-sT",
         "-T4",
         "192.168.1.0/24",
     ]
@@ -51,18 +53,16 @@ def test_default_request():
 def test_options_map_to_flags():
     request = NmapRequest(
         targets="10.0.0.1 10.0.0.2",
-        scan_type="TCP connect (-sT)",
         ports="Custom ports",
         custom_ports="22, 80,8000-8010",
         timing="Normal (-T3)",
         version_detection=True,
-        os_detection=True,
         default_scripts=True,
         skip_discovery=True,
         extra_args="--open --script 'http-title'",
     )
     assert build_args(request) == [
-        "-sT", "-p", "22,80,8000-8010", "-sV", "-sC", "-O", "-Pn", "--open", "--script", "http-title",
+        "--unprivileged", "-sT", "-p", "22,80,8000-8010", "-sV", "-sC", "-Pn", "--open", "--script", "http-title",
         "10.0.0.1", "10.0.0.2",
     ]  # fmt: skip
 
@@ -74,7 +74,27 @@ def test_ping_sweep_ignores_port_and_script_options():
         ports="All ports (-p-)",
         version_detection=True,
     )
-    assert build_args(request) == ["-sn", "-T4", "10.0.0.0/24"]
+    assert build_args(request) == ["--unprivileged", "-sn", "-T4", "10.0.0.0/24"]
+
+
+def test_form_offers_nothing_that_needs_admin_rights():
+    """NetBlade assumes no admin rights: no raw-packet scan types, OS detection or traceroute."""
+    from netblade.core.nmap import SCAN_TYPES, SUGGESTED_OPTIONS
+
+    offered = {flag for flags in SCAN_TYPES.values() for flag in flags}
+    offered |= {word for text, _ in SUGGESTED_OPTIONS for word in text.split()}
+    assert not offered & {
+        "-sS",
+        "-sU",
+        "-sA",
+        "-sW",
+        "-sF",
+        "-sX",
+        "-sN",
+        "-O",
+        "-A",
+        "--traceroute",
+    }
 
 
 @pytest.mark.parametrize(

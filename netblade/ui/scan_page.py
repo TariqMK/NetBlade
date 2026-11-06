@@ -261,7 +261,6 @@ class ScanPage(QWidget):
         self.n_type = QComboBox()
         self.n_type.addItems(list(nmap.SCAN_TYPES))
         self.n_type.setAccessibleName("Scan type")
-        self.n_type.setToolTip("SYN, UDP and OS detection need administrator rights")
         self.n_ports = QComboBox()
         self.n_ports.addItems(list(nmap.PORT_CHOICES))
         self.n_ports.setAccessibleName("Ports")
@@ -285,14 +284,12 @@ class ScanPage(QWidget):
         row1.addStretch()
 
         self.n_version = QCheckBox("Service versions (-sV)")
-        self.n_os = QCheckBox("OS detection (-O)")
-        self.n_os.setToolTip("Needs administrator rights")
         self.n_scripts = QCheckBox("Default scripts (-sC)")
         self.n_pn = QCheckBox("Skip host discovery (-Pn)")
         self.n_pn.setToolTip("Scan every target even if it doesn't answer ping")
         row2 = QHBoxLayout()
         row2.setSpacing(16)
-        for box in (self.n_version, self.n_os, self.n_scripts, self.n_pn):
+        for box in (self.n_version, self.n_scripts, self.n_pn):
             row2.addWidget(box)
         row2.addStretch()
 
@@ -347,7 +344,6 @@ class ScanPage(QWidget):
             self.n_custom.textChanged,
             self.n_timing.currentTextChanged,
             self.n_version.toggled,
-            self.n_os.toggled,
             self.n_scripts.toggled,
             self.n_pn.toggled,
             self.n_extra.textChanged,
@@ -367,7 +363,6 @@ class ScanPage(QWidget):
             custom_ports=self.n_custom.text(),
             timing=self.n_timing.currentText(),
             version_detection=self.n_version.isChecked(),
-            os_detection=self.n_os.isChecked(),
             default_scripts=self.n_scripts.isChecked(),
             skip_discovery=self.n_pn.isChecked(),
             extra_args=self.n_extra.text(),

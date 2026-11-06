@@ -158,3 +158,45 @@ def test_split_options_and_invalid_prefix():
     assert split_options(parse("1.2.3.4/32").network) == []
     with pytest.raises(SubnetInputError):
         split(network, 28)
+
+
+# Route summarising
+
+
+def test_summarise_merges_adjacent_networks():
+    from netblade.core.subnet import summarise
+
+    summaries, problems = summarise(
+        "10.1.0.0/24\n10.1.1.0/24, 10.1.2.0/24; 10.1.3.0/24"
+    )
+    assert problems == []
+    (v4,) = summaries
+    assert [str(n) for n in v4.networks] == ["10.1.0.0/22"]
+    assert str(v4.supernet) == "10.1.0.0/22"
+    assert v4.extra_addresses == 0
+
+
+def test_summarise_gap_needs_two_routes_and_reports_extra():
+    from netblade.core.subnet import summarise
+
+    (v4,), _ = summarise("192.168.0.0/24 192.168.1.0/24 192.168.3.0/24")
+    assert [str(n) for n in v4.networks] == ["192.168.0.0/23", "192.168.3.0/24"]
+    assert str(v4.supernet) == "192.168.0.0/22"
+    assert v4.extra_addresses == 256
+
+
+def test_summarise_handles_ipv6_hosts_and_problems():
+    from netblade.core.subnet import summarise
+
+    summaries, problems = summarise(
+        "2001:db8::/48 2001:db8:1::/48 10.0.0.5/24 10.0.0.9 nonsense"
+    )
+    by_version = {s.version: s for s in summaries}
+    assert [str(n) for n in by_version[6].networks] == ["2001:db8::/47"]
+    assert [str(n) for n in by_version[4].networks] == [
+        "10.0.0.0/24"
+    ]  # 10.0.0.9 is inside it.
+    assert problems == [
+        "10.0.0.5/24 has host bits set, so it counts as 10.0.0.0/24.",
+        "nonsense is not a network or address, so it was skipped.",
+    ]

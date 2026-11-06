@@ -18,11 +18,11 @@ from netblade.core.portscan import ScanInputError, ScanRow, parse_ports
 
 DOWNLOAD_URL = "https://nmap.org/download.html"
 
+# NetBlade never needs admin rights, so nmap always runs unprivileged. That rules out SYN and UDP
+# scans, OS detection and --traceroute, which need raw packets.
+UNPRIVILEGED = "--unprivileged"
 SCAN_TYPES = {
-    "Default scan": [],
-    "TCP connect (-sT)": ["-sT"],
-    "SYN scan (-sS)": ["-sS"],
-    "UDP scan (-sU)": ["-sU"],
+    "TCP connect scan (-sT)": ["-sT"],
     "Ping sweep only (-sn)": ["-sn"],
 }
 PORT_CHOICES = {
@@ -50,7 +50,6 @@ SUGGESTED_OPTIONS = [
         "--script ssl-enum-ciphers -p 443",
         "List the TLS versions and ciphers a server accepts",
     ),
-    ("--traceroute", "Trace the route to each host"),
     ("--max-retries 1", "Retry each probe only once, for speed"),
     ("--host-timeout 60s", "Give up on a host after 60 s"),
     ("-e eth0", "Send from a specific network interface"),
@@ -62,12 +61,11 @@ SUGGESTED_OPTIONS = [
 @dataclass
 class NmapRequest:
     targets: str
-    scan_type: str = "Default scan"
+    scan_type: str = "TCP connect scan (-sT)"
     ports: str = "Top 1000 ports"
     custom_ports: str = ""
     timing: str = DEFAULT_TIMING
     version_detection: bool = False
-    os_detection: bool = False
     default_scripts: bool = False
     skip_discovery: bool = False
     extra_args: str = ""
@@ -78,7 +76,7 @@ def build_args(request: NmapRequest) -> list[str]:
     targets = request.targets.split()
     if not targets:
         raise ScanInputError("Enter a host, IP address, network or range to scan.")
-    args = list(SCAN_TYPES[request.scan_type])
+    args = [UNPRIVILEGED, *SCAN_TYPES[request.scan_type]]
     ping_only = request.scan_type == "Ping sweep only (-sn)"
     if not ping_only:
         port_args = PORT_CHOICES[request.ports]
@@ -90,8 +88,6 @@ def build_args(request: NmapRequest) -> list[str]:
             args.append("-sV")
         if request.default_scripts:
             args.append("-sC")
-    if request.os_detection:
-        args.append("-O")
     if request.skip_discovery:
         args.append("-Pn")
     args += TIMINGS[request.timing]

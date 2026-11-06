@@ -27,9 +27,10 @@ class PingTarget:
 
     host: str
     ip: str | None = None
-    name: str | None = (
-        None  # Reverse DNS name when the host was entered as an IP address.
-    )
+    # Reverse DNS name when the host was entered as an IP address.
+    name: str | None = None
+    # Friendly name the user gives the host, for example "Printer 2F". Shown with the address, never instead of it.
+    alias: str | None = None
     error: str | None = None
     state: HostState = HostState.IDLE
     since: float = 0.0  # Wall-clock time of the last state change.
@@ -94,10 +95,45 @@ class PingTarget:
             return HostState.UP
         return HostState.UNSTABLE
 
+    @property
+    def label(self) -> str:
+        """What the tile and the log call this host: the friendly name if there is one."""
+        return self.alias or self.host
+
+    def addresses(self) -> list[str]:
+        """The address details shown next to the label, without repeats.
+
+        With a friendly name: the host as typed, then its IP if different.
+        Without: the reverse DNS name or the IP, if different from the host.
+        """
+        if self.alias:
+            parts = [self.host, self.ip]
+        else:
+            parts = [self.name if self.name and self.name != self.host else self.ip]
+        shown: list[str] = []
+        for part in parts:
+            if (
+                part
+                and part != self.alias
+                and part not in shown
+                and (self.alias or part != self.host)
+            ):
+                shown.append(part)
+        return shown
+
     def reset(self) -> None:
-        """Clear results, for example when monitoring starts again."""
-        fresh = PingTarget(self.host, ip=self.ip, name=self.name)
+        """Clear results, for example when monitoring starts again. The host, address and names stay."""
+        fresh = PingTarget(self.host, ip=self.ip, name=self.name, alias=self.alias)
         self.__dict__.update(fresh.__dict__)
+
+
+MAX_ALIAS_LENGTH = 40
+
+
+def clean_alias(text: str) -> str | None:
+    """Tidy a typed friendly name: trim, collapse spaces, limit the length. Empty means no name."""
+    alias = " ".join(text.split())[:MAX_ALIAS_LENGTH].strip()
+    return alias or None
 
 
 def parse_hosts(text: str) -> list[str]:
@@ -141,5 +177,8 @@ def status_line(target: PingTarget, now: float | None = None) -> str:
 def change_line(target: PingTarget, previous: HostState, at: float) -> str:
     """One line for the status change log."""
     stamp = time.strftime("%H:%M:%S", time.localtime(at))
-    address = f" ({target.ip})" if target.ip and target.ip != target.host else ""
-    return f"{stamp}  {target.host}{address}  {previous.value} → {target.state.value}"
+    details = [target.host] if target.alias else []
+    if target.ip and target.ip not in details and target.ip != target.host:
+        details.append(target.ip)
+    address = f" ({', '.join(details)})" if details else ""
+    return f"{stamp}  {target.label}{address}  {previous.value} → {target.state.value}"

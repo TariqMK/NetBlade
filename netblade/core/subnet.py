@@ -226,3 +226,51 @@ def split(network: IPNetwork, new_prefix: int) -> tuple[list[SplitRow], int]:
             )
         )
     return rows, total
+
+
+@dataclass(frozen=True)
+class Summary:
+    version: int
+    networks: list[
+        IPNetwork
+    ]  # The exact summary: the fewest networks that cover the input and nothing else.
+    supernet: IPNetwork  # The single smallest network that covers all the input.
+    input_addresses: int
+    extra_addresses: int  # Addresses inside the supernet that the input did not cover.
+
+
+def summarise(text: str) -> tuple[list[Summary], list[str]]:
+    """Summarise routes from pasted text. Returns one Summary per IP version and a list of problems.
+
+    Accepts networks and single addresses, one per line or separated by commas, semicolons or spaces.
+    Host bits are ignored, so 10.0.0.5/24 counts as 10.0.0.0/24.
+    """
+    problems: list[str] = []
+    by_version: dict[int, list[IPNetwork]] = {4: [], 6: []}
+    for token in re.split(r"[\s,;]+", text.strip()):
+        if not token:
+            continue
+        try:
+            network = ipaddress.ip_network(token, strict=False)
+        except ValueError:
+            problems.append(f"{token} is not a network or address, so it was skipped.")
+            continue
+        if (
+            "/" in token
+            and ipaddress.ip_address(token.split("/")[0]) != network.network_address
+        ):
+            problems.append(f"{token} has host bits set, so it counts as {network}.")
+        by_version[network.version].append(network)
+    summaries = []
+    for version, networks in by_version.items():
+        if not networks:
+            continue
+        exact = list(ipaddress.collapse_addresses(networks))
+        supernet = exact[0]
+        while not all(n.subnet_of(supernet) for n in exact):
+            supernet = supernet.supernet()
+        covered = sum(n.num_addresses for n in exact)
+        summaries.append(
+            Summary(version, exact, supernet, covered, supernet.num_addresses - covered)
+        )
+    return summaries, problems

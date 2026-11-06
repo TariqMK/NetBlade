@@ -19,16 +19,20 @@ from PySide6.QtWidgets import (
 )
 
 from netblade import APP_NAME, __version__
-from netblade.core import dns_lookup
+from netblade.core import dns_lookup, tlscheck
 from netblade.ui import theme
 from netblade.ui.curl_page import CurlPage
 from netblade.ui.dns_page import DnsPage
 from netblade.ui.icons import ICON_PX, nav_icon
 from netblade.ui.ipconfig_page import IpConfigPage
+from netblade.ui.mac_page import MacPage
 from netblade.ui.multiping_page import MultiPingPage
+from netblade.ui.notepad_page import NotepadPage
 from netblade.ui.ping_trace import PingTracePage
 from netblade.ui.scan_page import ScanPage
 from netblade.ui.subnet_page import SubnetPage
+from netblade.ui.tls_page import TlsPage
+from netblade.ui.whois_page import WhoisPage
 
 SIDEBAR_WIDTH = 216
 TOOLS = [
@@ -39,6 +43,10 @@ TOOLS = [
     ("Multi-ping", "grid"),
     ("nmap", "radar"),
     ("Subnet calculator", "calculator"),
+    ("TLS certificate", "shield"),
+    ("Whois", "landmark"),
+    ("MAC lookup", "tag"),
+    ("Notepad", "note"),
 ]
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
 ORDER_KEY = "sidebar/tool_order"
@@ -124,6 +132,10 @@ class MainWindow(QMainWindow):
         self.multiping_page = MultiPingPage()
         self.scan_page = ScanPage()
         self.subnet_page = SubnetPage()
+        self.tls_page = TlsPage()
+        self.whois_page = WhoisPage()
+        self.mac_page = MacPage()
+        self.notepad_page = NotepadPage()
         pages = (
             self.ping_page,
             self.dns_page,
@@ -132,6 +144,10 @@ class MainWindow(QMainWindow):
             self.multiping_page,
             self.scan_page,
             self.subnet_page,
+            self.tls_page,
+            self.whois_page,
+            self.mac_page,
+            self.notepad_page,
         )
         self.tool_pages = dict(zip(DEFAULT_ORDER, pages, strict=True))
         self.pages = QStackedWidget()
@@ -150,10 +166,10 @@ class MainWindow(QMainWindow):
         self.nav.currentItemChanged.connect(self._show_tool)
         self._fill_nav(tool_order(self._saved_order()))
         self.nav.setCurrentRow(0)
-        # Ctrl+1 to Ctrl+7 follow the sidebar order, so they change when the tools are reordered.
-        for number in range(len(TOOLS)):
-            shortcut = QShortcut(QKeySequence(f"Ctrl+{number + 1}"), self)
-            shortcut.activated.connect(lambda row=number: self.nav.setCurrentRow(row))
+        # Ctrl+1 to Ctrl+9, then Ctrl+0, open the first ten tools. They follow the sidebar order, so they change when the tools are reordered.
+        for row, key in enumerate("1234567890"[: len(TOOLS)]):
+            shortcut = QShortcut(QKeySequence(f"Ctrl+{key}"), self)
+            shortcut.activated.connect(lambda row=row: self.nav.setCurrentRow(row))
         for keys, step in (("Alt+Up", -1), ("Alt+Down", 1)):
             shortcut = QShortcut(QKeySequence(keys), self.nav)
             shortcut.activated.connect(lambda step=step: self.move_current(step))
@@ -260,6 +276,7 @@ class MainWindow(QMainWindow):
         self.curl_page.shutdown()
         self.multiping_page.shutdown()
         self.scan_page.shutdown()
+        self.notepad_page.shutdown()  # Saves notes typed in the last moment.
         super().closeEvent(event)
 
 
@@ -282,6 +299,7 @@ def main(argv: list[str]) -> int:
     if "--self-test" in argv:
         # Used by the release workflow to prove the packaged build starts and has the right version.
         dns_lookup.self_check()
+        tlscheck.self_check()
         if b"svg" not in QImageReader.supportedImageFormats():
             # The style sheet draws combo-box chevrons and check marks from SVG files.
             if sys.stdout is not None:

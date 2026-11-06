@@ -9,6 +9,7 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QApplication,
     QBoxLayout,
     QComboBox,
     QFrame,
@@ -17,6 +18,8 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QPlainTextEdit,
+    QPushButton,
     QScrollArea,
     QStackedWidget,
     QTableView,
@@ -34,8 +37,10 @@ from netblade.core.subnet import (
     parse,
     split,
     split_options,
+    summarise,
 )
 from netblade.ui import theme
+from netblade.ui.widgets import segmented
 
 
 class SplitModel(QAbstractTableModel):
@@ -197,13 +202,106 @@ class SubnetPage(QWidget):
         self.body.addWidget(self.empty)
         self.body.addWidget(scroll)
 
+        calculate = QWidget()
+        calculate_layout = QVBoxLayout(calculate)
+        calculate_layout.setContentsMargins(0, 0, 0, 0)
+        calculate_layout.setSpacing(16)
+        calculate_layout.addLayout(controls)
+        calculate_layout.addWidget(self.error)
+        calculate_layout.addWidget(self.body, 1)
+
+        mode_switch, self.mode_group = segmented(
+            ["Calculate", "Summarise routes"], self
+        )
+        self.modes = QStackedWidget()
+        self.modes.addWidget(calculate)
+        self.modes.addWidget(self._summarise_panel())
+        self.mode_group.idClicked.connect(self.modes.setCurrentIndex)
+        mode_row = QHBoxLayout()
+        mode_row.addWidget(mode_switch)
+        mode_row.addStretch()
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(16)
-        layout.addLayout(controls)
-        layout.addWidget(self.error)
-        layout.addWidget(self.body, 1)
+        layout.addLayout(mode_row)
+        layout.addWidget(self.modes, 1)
         self._fill_prefixes(4)
+
+    # Summarise routes
+
+    def _summarise_panel(self) -> QWidget:
+        panel = QWidget()
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(12)
+        self.routes = QPlainTextEdit()
+        self.routes.setObjectName("raw")
+        self.routes.setPlaceholderText(
+            "Paste networks or addresses, one per line or separated by commas.\n"
+            "10.1.0.0/24\n10.1.1.0/24\n10.1.2.0/24\n10.1.3.0/24"
+        )
+        self.routes.setFont(theme.mono_font())
+        self.routes.setFixedHeight(140)
+        self.routes.setAccessibleName("Networks to summarise")
+        self.routes.textChanged.connect(self.summarise_routes)
+        self.summary_notes = QLabel()
+        self.summary_notes.setProperty("role", "secondary")
+        self.summary_notes.setWordWrap(True)
+        self.summary_text = QPlainTextEdit()
+        self.summary_text.setObjectName("raw")
+        self.summary_text.setReadOnly(True)
+        self.summary_text.setFont(theme.mono_font())
+        self.summary_text.setAccessibleName("Summary")
+        copy_button = QPushButton("Copy summary")
+        copy_button.clicked.connect(self._copy_summary)
+        header = QHBoxLayout()
+        header.addWidget(_heading("Summary"))
+        header.addStretch()
+        header.addWidget(copy_button)
+        layout.addWidget(self.routes)
+        layout.addWidget(self.summary_notes)
+        layout.addLayout(header)
+        layout.addWidget(self.summary_text, 1)
+        self._summary_networks: list[str] = []
+        return panel
+
+    def summarise_routes(self) -> None:
+        summaries, problems = summarise(self.routes.toPlainText())
+        lines: list[str] = []
+        self._summary_networks = []
+        for summary in summaries:
+            label = "IPv4" if summary.version == 4 else "IPv6"
+            count = len(summary.networks)
+            lines.append(
+                f"{label}: exact summary, {count} route{'s' if count != 1 else ''}"
+            )
+            lines += [f"  {network.compressed}" for network in summary.networks]
+            self._summary_networks += [
+                network.compressed for network in summary.networks
+            ]
+            lines.append("")
+            lines.append(f"{label}: single covering route")
+            lines.append(f"  {summary.supernet.compressed}")
+            if summary.extra_addresses:
+                share = summary.extra_addresses / summary.supernet.num_addresses
+                lines.append(
+                    f"  Also covers {format_count(summary.extra_addresses)} addresses that are not in your list "
+                    f"({share:.0%} of the route)."
+                )
+                if share > 0.5:
+                    lines.append(
+                        "  Caution: most of this route is outside your list. Use the exact summary instead."
+                    )
+            else:
+                lines.append("  Covers exactly your list.")
+            lines.append("")
+        self.summary_text.setPlainText("\n".join(lines).rstrip())
+        self.summary_notes.setText(" ".join(problems))
+        self.summary_notes.setVisible(bool(problems))
+
+    def _copy_summary(self) -> None:
+        QApplication.clipboard().setText("\n".join(self._summary_networks))
 
     # Input
 

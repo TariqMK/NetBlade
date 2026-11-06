@@ -3,9 +3,11 @@
 import pytest
 
 from netblade.core.multiping import (
+    MAX_ALIAS_LENGTH,
     HostState,
     PingTarget,
     change_line,
+    clean_alias,
     format_duration,
     parse_hosts,
     status_line,
@@ -134,3 +136,84 @@ def test_change_line_includes_address_when_name_was_entered():
     feed(target, [OK, LOST, LOST, LOST])
     line = change_line(target, HostState.UNSTABLE, at=0.0)
     assert line.endswith("printer-2f (192.168.1.40)  Unstable → Down")
+
+
+# Friendly names
+
+
+def test_label_and_addresses_with_and_without_alias():
+    ip_host = PingTarget("192.168.1.40")
+    assert ip_host.label == "192.168.1.40"
+    assert ip_host.addresses() == []
+    ip_host.name = "printer.home"
+    assert ip_host.addresses() == ["printer.home"]
+
+    ip_host.alias = "Printer 2F"
+    assert ip_host.label == "Printer 2F"
+    assert ip_host.addresses() == [
+        "192.168.1.40"
+    ]  # The address still shows with a friendly name.
+
+    named = PingTarget("nas.home", ip="10.0.0.5", alias="NAS")
+    assert named.addresses() == ["nas.home", "10.0.0.5"]
+
+
+def test_clean_alias():
+    assert clean_alias("  Printer   2F ") == "Printer 2F"
+    assert clean_alias("   ") is None
+    assert len(clean_alias("x" * 100)) == MAX_ALIAS_LENGTH
+
+
+def test_reset_keeps_alias():
+    target = PingTarget("10.0.0.1", alias="Core switch")
+    feed(target, [OK, LOST])
+    target.reset()
+    assert target.alias == "Core switch"
+    assert target.sent == 0
+
+
+def test_change_line_uses_alias_and_keeps_addresses():
+    target = PingTarget("printer-2f", ip="192.168.1.40", alias="Printer 2F")
+    feed(target, [OK, LOST, LOST, LOST])
+    line = change_line(target, HostState.UNSTABLE, at=0.0)
+    assert line.endswith("Printer 2F (printer-2f, 192.168.1.40)  Unstable → Down")
+    by_ip = PingTarget("10.0.0.1", ip="10.0.0.1", alias="Core switch")
+    feed(by_ip, [LOST] * 3)
+    assert change_line(by_ip, HostState.UNSTABLE, at=0.0).endswith(
+        "Core switch (10.0.0.1)  Unstable → Down"
+    )
+
+
+def test_tile_rename_flow(qapp):
+    from PySide6.QtCore import Qt
+    from PySide6.QtTest import QTest
+
+    from netblade.ui.multiping_page import MultiPingPage
+
+    page = MultiPingPage()
+    page.resize(900, 600)
+    page.show()
+    page.add_field.setText("192.168.1.40")
+    page.add_from_field()
+    target = page.targets[0]
+    tile = page.tiles[id(target)]
+
+    tile.start_rename()
+    QTest.keyClicks(tile._editor, "Printer 2F")
+    QTest.keyClick(tile._editor, Qt.Key.Key_Return)
+    assert target.alias == "Printer 2F"
+    assert not tile._editor.isVisible()
+    assert "192.168.1.40 is now called Printer 2F" in page.log.toPlainText()
+    assert tile.accessibleName() == "Printer 2F 192.168.1.40"
+
+    tile.start_rename()  # Esc keeps the old name.
+    QTest.keyClicks(tile._editor, "Something else")
+    QTest.keyClick(tile._editor, Qt.Key.Key_Escape)
+    assert target.alias == "Printer 2F"
+
+    tile.start_rename()  # An empty name removes the friendly name.
+    tile._editor.clear()
+    QTest.keyClick(tile._editor, Qt.Key.Key_Return)
+    assert target.alias is None
+    assert "friendly name removed" in page.log.toPlainText()
+    page.shutdown()

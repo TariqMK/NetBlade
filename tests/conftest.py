@@ -5,7 +5,7 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import pytest
-from PySide6.QtCore import QSettings
+from PySide6.QtCore import QSettings, QStandardPaths
 from PySide6.QtWidgets import QApplication
 
 
@@ -13,6 +13,8 @@ from PySide6.QtWidgets import QApplication
 def qapp(tmp_path_factory):
     # Tests must never read or change the user's real NetBlade settings, such as the sidebar order.
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
+    # User folders (notes, vendor list) go to Qt's separate test location, never the real ones.
+    QStandardPaths.setTestModeEnabled(True)
     QSettings.setPath(
         QSettings.Format.IniFormat,
         QSettings.Scope.UserScope,

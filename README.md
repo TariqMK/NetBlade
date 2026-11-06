@@ -1,8 +1,8 @@
 # NetBlade
 
-NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, and how your network adapters and subnets are set up. No command line is necessary.
+NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, who owns an address or domain, whether a certificate is valid, and how your network adapters and subnets are set up. No command line is necessary.
 
-NetBlade has seven tools:
+NetBlade has eleven tools:
 
 - **Ping and trace:** a continuous traceroute with loss and latency for each hop.
 - **DNS lookup:** queries for one record type, from your system nameserver or a nameserver you choose.
@@ -10,9 +10,13 @@ NetBlade has seven tools:
 - **curl:** an HTTP request built from a form. It shows the curl command, the response and the time of each phase.
 - **Multi-ping:** continuous ping of up to 10 hosts. Each host shows as a green, amber or red tile.
 - **nmap:** a port scan with the built-in scanner, or with nmap when it is installed.
-- **Subnet calculator:** network details, binary view and subnet split for IPv4 and IPv6.
+- **Subnet calculator:** network details, binary view, subnet split and route summary for IPv4 and IPv6.
+- **TLS certificate:** the certificate chain, trust, expiry and accepted TLS versions of a server.
+- **Whois:** the owner, range and abuse contact of an IP address, AS number or domain.
+- **MAC lookup:** the vendor of one or more MAC addresses.
+- **Notepad:** temporary notes in a monospace font. Notes save automatically.
 
-NetBlade does not need administrator rights. Some nmap scan types do (see nmap).
+NetBlade never needs administrator rights. Every tool works for a normal user.
 
 ## Download
 
@@ -35,9 +39,9 @@ NetBlade does not need administrator rights. Some nmap scan types do (see nmap).
 
 ## Use
 
-Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+7**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. The version shows next to the app name at the top of the sidebar.
+Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. The eleventh tool has no shortcut. The version shows next to the app name at the top of the sidebar.
 
-The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap and Subnet calculator.
+The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup and Notepad.
 
 ### Change the order of the tools
 
@@ -50,7 +54,7 @@ To go back to the default order, right-click the sidebar and select **Reset orde
 
 NetBlade keeps the order when you close it.
 
-**Note:** The **Ctrl+1** to **Ctrl+7** shortcuts follow the new order.
+**Note:** The **Ctrl+1** to **Ctrl+0** shortcuts follow the new order.
 
 NetBlade follows the light or dark appearance of your system.
 
@@ -147,9 +151,19 @@ Multi-ping pings up to 10 hosts at the same time, without stopping. Each host sh
 6. To stop or start one host, select the pause or play button on its tile. To remove a host, select the **×** button.
 7. Select **Stop all** to stop all pings.
 
-The **Status changes** list shows each change with the time, for example `13:42:11  printer-2f (192.168.1.40)  Unstable → Down`. Select **Copy** to copy the list, or **Clear** to empty it.
+The **Status changes** list shows each change with the time, for example `13:42:11  Printer 2F (192.168.1.40)  Unstable → Down`. It also shows each rename. Select **Copy** to copy the list, or **Clear** to empty it.
 
-**Note:** **Start all** clears the results of all hosts. The host list is not kept when you close NetBlade.
+**Note:** **Start all** clears the results of all hosts, but keeps the friendly names. The host list and the friendly names are not kept when you close NetBlade.
+
+#### Give a host a friendly name
+
+You can name a host at any time, also while it is pinged. The name shows as the tile title. The IP address always shows below the name.
+
+1. Select the pencil button on the tile. Or double-click the host name, or right-click the tile and select **Rename…**.
+2. Type the name, for example `Printer 2F`. A name can have up to 40 characters.
+3. Press Enter. To cancel, press Esc.
+
+To remove a friendly name, clear the field and press Enter. Or right-click the tile and select **Remove friendly name**.
 
 ### nmap
 
@@ -173,22 +187,22 @@ The built-in scanner scans up to 1,024 hosts at a time, for example a /22 networ
 
 #### nmap mode
 
-nmap mode runs nmap with the options you set. The command box shows the exact command. You can copy it and run it in a terminal.
+nmap mode runs nmap with the options you set. The command box shows the exact command. You can copy it and run it in a terminal. NetBlade always runs nmap with `--unprivileged`, so nmap never needs administrator rights.
 
 **Note:** NetBlade does not include nmap, because the nmap licence does not allow it. Install nmap from [nmap.org](https://nmap.org/download.html), then select **Check again**. On Windows, the nmap installer also installs Npcap.
 
-1. Select the scan type: **Default scan**, **TCP connect (-sT)**, **SYN scan (-sS)**, **UDP scan (-sU)** or **Ping sweep only (-sn)**.
+1. Select the scan type: **TCP connect scan (-sT)** or **Ping sweep only (-sn)**.
 2. Select the ports: **Top 1000 ports**, **Top 100 ports (-F)**, **All ports (-p-)** or **Custom ports**.
 3. Select the timing: **Polite (-T2)**, **Normal (-T3)**, **Aggressive (-T4)** or **Insane (-T5)**. The default is **Aggressive (-T4)**.
-4. Select the options you need: **Service versions (-sV)**, **OS detection (-O)**, **Default scripts (-sC)** and **Skip host discovery (-Pn)**.
+4. Select the options you need: **Service versions (-sV)**, **Default scripts (-sC)** and **Skip host discovery (-Pn)**.
 5. To use any other nmap option, type it in **More options**. Or select **Suggestions** and select a common option.
 6. Select **Scan**. To stop the scan, select **Cancel**.
 
-**Note:** SYN scan, UDP scan and OS detection need administrator rights. Large networks and service detection can take several minutes.
+**Note:** SYN scans, UDP scans and OS detection are not available, because they need administrator rights. Large networks and service detection can take several minutes.
 
 #### Results
 
-The results table shows one row for each open port: **Host**, **Name**, **Port**, **State**, **Service** and **Details**. A host that is up with no open ports gets one row. In nmap mode, **Details** shows the product and version, script output, the MAC address and vendor, and the OS. Select **nmap output** to see the full nmap output.
+The results table shows one row for each open port: **Host**, **Name**, **Port**, **State**, **Service** and **Details**. A host that is up with no open ports gets one row. In nmap mode, **Details** shows the product and version, the script output, and the MAC address and vendor when nmap finds them. Select **nmap output** to see the full nmap output.
 
 To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy all rows.
 
@@ -206,6 +220,79 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 
 **Note:** The split table shows the first 1,024 subnets.
 
+#### Summarise routes
+
+1. Select **Summarise routes** at the top of the Subnet calculator.
+2. Paste the networks or addresses, one per line or separated by commas.
+3. Read the **Summary**:
+   - **Exact summary:** the fewest routes that cover your list and nothing else.
+   - **Single covering route:** the one route that covers all of your list, and how many other addresses it also covers.
+4. Select **Copy summary** to copy the exact summary.
+
+**Caution:** When most of the single covering route is outside your list, NetBlade shows a caution. Use the exact summary in that case.
+
+**Note:** An entry with host bits set, for example `10.1.6.7/24`, counts as its network, `10.1.6.0/24`. Entries that are not networks or addresses are skipped. A note shows both.
+
+### TLS certificate
+
+1. Type a server, for example `example.com`, `example.com:8443` or `https://example.com`. The default port is 443.
+2. Select **Check**, or press Enter.
+3. Read the result line:
+   - Green: the certificate is trusted, with the days left.
+   - Amber: the certificate is trusted but expires in 30 days or less.
+   - Red: the certificate has expired, is not yet valid, is not for this host name, is self-signed, or is not trusted by this computer. The reason from this computer shows below.
+4. Read the connection line: the TLS version, the cipher, the server IP address and port, and the time.
+5. Read the TLS versions: each of TLS 1.3, 1.2, 1.1 and 1.0 shows as accepted or refused. TLS 1.1 and 1.0 show as outdated when the server accepts them.
+6. Read the certificate cards, one for each certificate in the chain. Each card shows the validity period as a bar, the issuer, the key, the signature, the serial number and the SHA-256 fingerprint. The server certificate also shows its names.
+
+**Note:** "Trusted" means trusted by this computer. NetBlade uses the same check as the operating system, as a browser does.
+
+### Whois
+
+Whois uses RDAP, the replacement for the whois protocol. NetBlade finds the registry that holds the record in the IANA directory, then asks that registry.
+
+1. Type an IP address, a network, an AS number or a domain. For example: `8.8.8.8`, `185.199.108.0/22`, `AS13335` or `example.com`. A URL or an e-mail address also works.
+2. Select **Look up**, or press Enter. To look up your own public IP address, select **My public IP**.
+3. Read the details:
+   - IP address or network: network name, range, CIDR, owner, type, country and abuse contact.
+   - AS number: name, owner, country and abuse contact.
+   - Domain: registrar, owner, status, name servers, DNSSEC and expiry date with the days left.
+4. Read the **Contacts** table: role, name, organisation, e-mail and phone.
+5. Select **Raw RDAP** to see the full answer from the registry. Select **Copy** to copy the view.
+
+**Note:** For a name such as `www.shop.example.com`, NetBlade looks up the registered domain, `example.com`.
+
+**Note:** **My public IP** asks api.ipify.org for your public IP address.
+
+### MAC lookup
+
+MAC lookup finds the vendor of a network device from its MAC address. It uses the IEEE vendor list.
+
+1. The first time, select **Download vendor list**. The list is about 5 MB. After the download, lookups work offline. To get the newest list later, select **Update vendor list**.
+2. Paste one or more MAC addresses, one per line or separated by commas. Any format works, for example `00:15:5d:e4:24:53`, `00-15-5D-E4-24-53`, `0015.5de4.2453` or the prefix `00155D`.
+3. Select **Look up**, or press **Ctrl+Enter**.
+4. Read the table: the MAC address, the vendor, notes and the vendor address. With one MAC address, NetBlade also shows it in colon, hyphen, bare and Cisco formats.
+
+NetBlade explains MAC addresses that have no vendor:
+
+- **Locally administered:** a random (private) address, as phones and laptops use on Wi-Fi, or a virtual address.
+- **Multicast** and **broadcast** addresses: these do not belong to one device.
+
+To copy rows, select them and press **Ctrl+C**, or select **Copy** to copy all rows.
+
+### Notepad
+
+The Notepad keeps temporary notes in a monospace font, so columns of addresses and command output line up.
+
+1. Type or paste your notes. NetBlade saves them automatically, shortly after you stop typing.
+2. Select **Wrap long lines** to fit long lines to the window. Clear it to scroll long lines sideways.
+3. Select **Copy all** to copy the notes, or **Save as…** to save a copy as a text file.
+4. To delete all notes, select **Clear**, then **Discard**.
+
+**Caution:** **Clear** deletes the notes and can't be undone.
+
+NetBlade keeps the notes when you close it. They are stored in your user folder.
+
 ## Known limitations
 
 - Ping and trace and Multi-ping use IPv4 only.
@@ -216,10 +303,13 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 - The copied curl command uses double quotes on Windows. In PowerShell, a value that contains `"` or `$` can need changes.
 - The built-in scanner scans TCP only, IPv4 only, and up to 1,024 hosts at a time. It does not detect versions or operating systems.
 - nmap mode needs nmap installed on the system. nmap mode is not yet tested with a real nmap installation.
+- The TLS certificate tool does not support STARTTLS, for example on mail ports 25 and 587.
+- Some country domains have no RDAP service. Whois then tells you to use the registry's website.
+- MAC lookup needs the IEEE vendor list, which you download once.
 
 ## Run From Source
 
-Requires Python 3.12 or later.
+Requires Python 3.13 or later.
 
 1. Clone the repository.
 2. Create a virtual environment and install NetBlade with the development tools:
@@ -247,7 +337,7 @@ A source run shows the development version `v0.0.0.dev0`.
 pytest
 ```
 
-The tests send no network traffic. The traceroute tests use a simulated path. The curl tests run curl on a local file and on a closed local port. The port scan test scans a port that the test opens on this computer. The nmap tests use sample nmap output, so nmap is not necessary.
+The tests send no network traffic. The traceroute tests use a simulated path. The curl tests run curl on a local file and on a closed local port. The port scan test scans a port that the test opens on this computer. The nmap tests use sample nmap output, so nmap is not necessary. The TLS tests start a TLS server on this computer. The Whois and MAC lookup tests use sample registry answers and a sample vendor list.
 
 Check code style with:
 
@@ -276,7 +366,7 @@ The workflow does these steps:
 1. Finds the highest existing version in the git tags and GitHub releases, including drafts, then applies the bump.
 2. Runs the lint check and the tests. If they fail, nothing is built.
 3. Builds NetBlade for Windows x64, macOS Apple Silicon and Linux x64. The version is applied on the build machine only.
-4. Starts each build without a display. The check fails if the build does not run, shows the wrong version, or is missing the DNS record modules or the Qt SVG image plugin.
+4. Starts each build without a display. The check fails if the build does not run, shows the wrong version, or is missing the DNS record modules, the Qt SVG image plugin or the certificate libraries.
 5. Tags the built commit and creates the release, with the three files attached and generated release notes.
 
 **Note:** No secrets are necessary. The workflow uses the built-in GitHub token.
