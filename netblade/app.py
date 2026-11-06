@@ -3,8 +3,15 @@
 import gc
 import sys
 
-from PySide6.QtCore import QCoreApplication, QEvent, QSettings, QSize, Qt, Signal
-from PySide6.QtGui import QAction, QFont, QImageReader, QKeySequence, QShortcut
+from PySide6.QtCore import QCoreApplication, QEvent, QSettings, QSize, Qt, QUrl, Signal
+from PySide6.QtGui import (
+    QAction,
+    QDesktopServices,
+    QFont,
+    QImageReader,
+    QKeySequence,
+    QShortcut,
+)
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -14,13 +21,16 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QMainWindow,
     QMenu,
+    QMessageBox,
     QStackedWidget,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
 from netblade import APP_NAME, __version__
-from netblade.core import dns_lookup, tlscheck
+from netblade.core import dns_lookup, tlscheck, update_check
+from netblade.core.update_check import UpdateError, UpdateInfo
 from netblade.ui import tasks, theme
 from netblade.ui.curl_page import CurlPage
 from netblade.ui.dns_page import DnsPage
@@ -77,6 +87,22 @@ def display_version() -> str:
     return f"v{__version__}"
 
 
+def update_summary(info: UpdateInfo) -> tuple[str, str]:
+    """The headline and the detail line shown after a successful update check."""
+    current = display_version()
+    if info.dev_build:
+        return (
+            "This is a development build.",
+            f"You are running {current}. The latest release is {info.latest}.",
+        )
+    if info.newer:
+        return (
+            f"{APP_NAME} {info.latest} is available.",
+            f"You have {current}. Open the release page to download the new version.",
+        )
+    return (f"{APP_NAME} is up to date.", f"{current} is the latest release.")
+
+
 class MainWindow(QMainWindow):
     """Top-level NetBlade window."""
 
@@ -89,9 +115,18 @@ class MainWindow(QMainWindow):
 
         title = QLabel(APP_NAME)
         title.setFont(theme.ui_font(16, QFont.Weight.Medium))
-        self.version_label = QLabel(display_version())
+        # The version doubles as a discreet "Check for updates" button. Its text stays the plain
+        # version, because the release self-test compares it.
+        self.version_label = QToolButton()
+        self.version_label.setObjectName("versionButton")
+        self.version_label.setText(display_version())
         self.version_label.setFont(theme.mono_font(theme.SMALL_PX))
-        self.version_label.setProperty("role", "muted")
+        self.version_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.version_label.setToolTip("Check for updates")
+        self.version_label.setAccessibleName(f"Version {display_version()}")
+        self.version_label.setAccessibleDescription("Check GitHub for a newer release.")
+        self.version_label.clicked.connect(self.check_for_updates)
+        self._latest: UpdateInfo | None = None
         brand = QHBoxLayout()
         brand.setContentsMargins(8, 0, 8, 0)
         brand.setSpacing(8)
@@ -167,6 +202,10 @@ class MainWindow(QMainWindow):
         self.nav.currentItemChanged.connect(self._show_tool)
         self._fill_nav(tool_order(self._saved_order()))
         self.nav.setCurrentRow(0)
+        # The tool list keeps the first focus, as before the version became a button.
+        self.version_label.setFocusPolicy(Qt.FocusPolicy.TabFocus)
+        QWidget.setTabOrder(self.nav, self.version_label)
+        self.nav.setFocus()
         # Ctrl+1 to Ctrl+9, then Ctrl+0, open the first ten tools. They follow the sidebar order, so they change when the tools are reordered.
         for row, key in enumerate("1234567890"[: len(TOOLS)]):
             shortcut = QShortcut(QKeySequence(f"Ctrl+{key}"), self)
@@ -251,6 +290,69 @@ class MainWindow(QMainWindow):
         reset.triggered.connect(self.reset_order)
         menu.addAction(reset)
         menu.exec(self.nav.viewport().mapToGlobal(position))
+
+    # Update check
+
+    def check_for_updates(self) -> None:
+        """Ask GitHub for the latest release on a background thread. Only runs when the user clicks."""
+        if not self.version_label.isEnabled():
+            return  # A check is already running.
+        self.version_label.setEnabled(False)
+        self.version_label.setText("checking…")
+        tasks.run_in_thread(
+            update_check.check, self._update_checked, self._update_failed
+        )
+
+    def _finish_update_check(self) -> None:
+        self.version_label.setText(display_version())
+        self.version_label.setEnabled(True)
+
+    def _update_checked(self, info: UpdateInfo) -> None:
+        self._finish_update_check()
+        self._latest = info
+        newer = info.newer
+        # A newer release keeps the version tinted until the app restarts, as a quiet reminder.
+        self.version_label.setProperty("update", newer)
+        self.version_label.style().unpolish(self.version_label)
+        self.version_label.style().polish(self.version_label)
+        self.version_label.setToolTip(
+            f"{info.latest} is available. Click for details."
+            if newer
+            else "Check for updates"
+        )
+        self._show_update_dialog(info)
+
+    def _update_failed(self, error: Exception) -> None:
+        self._finish_update_check()
+        message = (
+            str(error)
+            if isinstance(error, UpdateError)
+            else f"The check failed: {error}"
+        )
+        self._show_update_error(message)
+
+    def _show_update_dialog(self, info: UpdateInfo) -> None:
+        headline, detail = update_summary(info)
+        box = QMessageBox(self)
+        box.setWindowTitle("Check for updates")
+        box.setIcon(QMessageBox.Icon.Information)
+        box.setText(headline)
+        box.setInformativeText(detail)
+        if info.notes and (info.newer or info.dev_build):
+            box.setDetailedText(info.notes)
+        open_button = None
+        if info.newer or info.dev_build:
+            open_button = box.addButton(
+                "Open release page", QMessageBox.ButtonRole.AcceptRole
+            )
+            box.setDefaultButton(open_button)
+        box.addButton(QMessageBox.StandardButton.Close)
+        box.exec()
+        if open_button is not None and box.clickedButton() is open_button:
+            QDesktopServices.openUrl(QUrl(info.url))
+
+    def _show_update_error(self, message: str) -> None:
+        QMessageBox.warning(self, "Check for updates", message)
 
     def _show_tool(self, item: QListWidgetItem | None, _previous=None) -> None:
         if item is None:

@@ -209,6 +209,13 @@ def _style_sheet(t: Tokens) -> str:
     QLabel[role="secondary"] {{ color: {t.text_secondary}; }}
     QLabel[role="muted"] {{ color: {t.text_muted}; }}
     QLabel[role="error"] {{ color: {t.negative}; }}
+    QToolButton#versionButton {{
+        background: transparent; color: {t.text_muted}; border: 1px solid transparent; border-radius: 4px;
+        padding: 0 2px;
+    }}
+    QToolButton#versionButton:hover {{ color: {t.text_secondary}; background: {t.hover}; }}
+    QToolButton#versionButton:focus {{ border: 1px solid {t.accent}; }}
+    QToolButton#versionButton[update="true"] {{ color: {t.accent}; }}
 
     QListWidget#nav {{ background: transparent; border: none; outline: 0; }}
     QListWidget#nav::item {{
