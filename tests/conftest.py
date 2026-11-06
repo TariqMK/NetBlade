@@ -8,6 +8,8 @@ import pytest
 from PySide6.QtCore import QSettings, QStandardPaths
 from PySide6.QtWidgets import QApplication
 
+from netblade.ui import tasks
+
 
 @pytest.fixture(scope="session")
 def qapp(tmp_path_factory):
@@ -23,7 +25,10 @@ def qapp(tmp_path_factory):
     app = QApplication.instance() or QApplication([])
     app.setOrganizationName("NetBlade-tests")
     app.setApplicationName("NetBlade-tests")
-    return app
+    yield app
+    # Tasks still running when the tests end must not report into Qt while it shuts down.
+    # Without this, CI on Linux crashed with a segmentation fault after all tests passed.
+    tasks.shutdown()
 
 
 @pytest.fixture

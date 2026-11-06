@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 
 from netblade import APP_NAME, __version__
 from netblade.core import dns_lookup, tlscheck
-from netblade.ui import theme
+from netblade.ui import tasks, theme
 from netblade.ui.curl_page import CurlPage
 from netblade.ui.dns_page import DnsPage
 from netblade.ui.icons import ICON_PX, nav_icon
@@ -310,7 +310,9 @@ def main(argv: list[str]) -> int:
         return 0
 
     window.show()
-    return app.exec()
+    code = app.exec()
+    tasks.shutdown()  # Background tasks still running must not report into Qt while it shuts down.
+    return code
 
 
 def run() -> None:

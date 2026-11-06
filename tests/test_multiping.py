@@ -184,12 +184,20 @@ def test_change_line_uses_alias_and_keeps_addresses():
     )
 
 
-def test_tile_rename_flow(qapp):
+def test_tile_rename_flow(qapp, monkeypatch):
+    import socket
+
     from PySide6.QtCore import Qt
     from PySide6.QtTest import QTest
 
     from netblade.ui.multiping_page import MultiPingPage
 
+    def no_lookup(
+        _address,
+    ):  # Tests send no network traffic; a reverse lookup could also outlive the test.
+        raise OSError("no lookups in tests")
+
+    monkeypatch.setattr(socket, "gethostbyaddr", no_lookup)
     page = MultiPingPage()
     page.resize(900, 600)
     page.show()

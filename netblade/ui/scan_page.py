@@ -36,7 +36,7 @@ from netblade.core.portscan import (
     parse_targets,
     rows_from_results,
 )
-from netblade.ui import theme
+from netblade.ui import tasks, theme
 from netblade.ui.tasks import run_in_thread
 from netblade.ui.widgets import caption, segmented
 
@@ -482,7 +482,11 @@ class ScanPage(QWidget):
                 self._finish()
                 self._set_error(f"The scan stopped: {error}")
 
-        run_in_thread(lambda: scan.run(self._progress.changed.emit), done, failed)
+        run_in_thread(
+            lambda: scan.run(lambda n: tasks.report(self._progress.changed, n)),
+            done,
+            failed,
+        )
 
     def _on_progress(self, done: int) -> None:
         if (

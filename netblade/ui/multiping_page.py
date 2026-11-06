@@ -39,7 +39,7 @@ from netblade.core.multiping import (
     status_line,
 )
 from netblade.core.probe import ProbeKind, probe, resolve_ipv4
-from netblade.ui import icons, theme
+from netblade.ui import icons, tasks, theme
 from netblade.ui.tasks import run_in_thread
 
 INTERVALS = [
@@ -111,7 +111,7 @@ class MultiPingWorker(QObject):
                     results = list(pool.map(self._ping, active))
                     if self._stop.is_set():
                         return
-                    self.results.emit(results)
+                    tasks.report(self.results, results)
                 self._stop.wait(
                     max(0.0, self.interval_s - (time.monotonic() - started))
                 )

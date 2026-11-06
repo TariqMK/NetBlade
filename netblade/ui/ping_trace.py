@@ -40,7 +40,7 @@ from PySide6.QtWidgets import (
 
 from netblade.core.mtr import HISTORY_LENGTH, MAX_HOPS, HopStats, MtrSession
 from netblade.core.probe import probe, resolve_ipv4
-from netblade.ui import theme
+from netblade.ui import tasks, theme
 
 INTERVALS = [
     ("Every 0.5 s", 0.5),
@@ -85,11 +85,12 @@ class TraceWorker(QObject):
         try:
             ip = resolve_ipv4(self.target)
         except (OSError, UnicodeError):
-            self.failed.emit(
-                f"Can't find {self.target}. Check the name or IP address and try again."
+            tasks.report(
+                self.failed,
+                f"Can't find {self.target}. Check the name or IP address and try again.",
             )
             return
-        self.resolved.emit(ip)
+        tasks.report(self.resolved, ip)
 
         session = MtrSession(ip)
         names: dict[str, Future] = {}
@@ -99,7 +100,9 @@ class TraceWorker(QObject):
                 try:
                     session.run_cycle(probe, probes.map)
                 except OSError as error:
-                    self.failed.emit(f"Can't send ICMP probes on this system: {error}")
+                    tasks.report(
+                        self.failed, f"Can't send ICMP probes on this system: {error}"
+                    )
                     return
                 for hop in session.hops.values():
                     if hop.address and hop.address not in names:
@@ -109,8 +112,10 @@ class TraceWorker(QObject):
                         hop.hostname = future.result()
                 if self._stop.is_set():
                     return
-                self.updated.emit(
-                    copy.deepcopy(session.visible_hops()), session.destination_ttl
+                tasks.report(
+                    self.updated,
+                    copy.deepcopy(session.visible_hops()),
+                    session.destination_ttl,
                 )
                 self._stop.wait(
                     max(0.0, self.interval_s - (time.monotonic() - started))
