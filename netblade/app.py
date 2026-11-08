@@ -33,6 +33,7 @@ from netblade.core import dns_lookup, tlscheck, update_check
 from netblade.core.update_check import UpdateError, UpdateInfo
 from netblade.ui import tasks, theme
 from netblade.ui.curl_page import CurlPage
+from netblade.ui.diff_page import DiffPage
 from netblade.ui.dns_page import DnsPage
 from netblade.ui.icons import ICON_PX, app_icon, nav_icon
 from netblade.ui.ipconfig_page import IpConfigPage
@@ -58,6 +59,7 @@ TOOLS = [
     ("Whois", "landmark"),
     ("MAC lookup", "tag"),
     ("Notepad", "note"),
+    ("Text diff", "diff"),
 ]
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
 ORDER_KEY = "sidebar/tool_order"
@@ -172,6 +174,7 @@ class MainWindow(QMainWindow):
         self.whois_page = WhoisPage()
         self.mac_page = MacPage()
         self.notepad_page = NotepadPage()
+        self.diff_page = DiffPage()
         pages = (
             self.ping_page,
             self.dns_page,
@@ -184,6 +187,7 @@ class MainWindow(QMainWindow):
             self.whois_page,
             self.mac_page,
             self.notepad_page,
+            self.diff_page,
         )
         self.tool_pages = dict(zip(DEFAULT_ORDER, pages, strict=True))
         self.pages = QStackedWidget()
@@ -370,6 +374,7 @@ class MainWindow(QMainWindow):
             item.setIcon(nav_icon(icons[item.data(ToolRole)], t.text_muted, t.accent))
         self.multiping_page.apply_theme()
         self.subnet_page.apply_theme()
+        self.diff_page.apply_theme()
         self.update()
         for widget in self.findChildren(QWidget):
             widget.update()

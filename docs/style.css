@@ -250,6 +250,7 @@ h2 { font-size: clamp(30px, 4vw, 44px); line-height: 1.1; letter-spacing: -0.025
 .toolgrid { display: grid; grid-template-columns: repeat(4, 1fr); margin: 56px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .toolgrid li { padding: 24px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background-color 160ms var(--ease); }
 .toolgrid li:hover { background: var(--sidebar); }
+.toolgrid .reorder { grid-column: 1 / -1; }
 .toolgrid .keys { display: flex; gap: 4px; height: 22px; font-size: 12px; }
 .toolgrid h4 { margin-top: 16px; font-size: 16px; }
 .toolgrid li > p:last-child { margin-top: 6px; font-size: 14px; line-height: 1.5; color: var(--text-2); }

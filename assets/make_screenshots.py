@@ -31,6 +31,7 @@ from netblade.core.oui import OuiDatabase, Vendor
 from netblade.core.portscan import ScanRow
 from netblade.core.probe import ProbeKind, ProbeResult
 from netblade.core.rdap import Contact, Query, RdapResult
+from netblade.core.text_diff import compare
 from netblade.core.tlscheck import CertInfo, TlsResult
 from netblade.ui import theme
 from netblade.ui.curl_page import BODY_VIEW
@@ -475,6 +476,63 @@ def fill_notepad(window: MainWindow) -> None:
     page.save()  # Writes to Qt's test location, so the status shows "Saved".
 
 
+DIFF_ORIGINAL = """\
+hostname edge-sw-01
+!
+interface GigabitEthernet0/1
+ description Uplink to core
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30
+!
+interface GigabitEthernet0/2
+ description Printers
+ switchport access vlan 30
+ spanning-tree portfast
+!
+ip route 0.0.0.0 0.0.0.0 10.20.99.1
+ntp server 192.0.2.10
+logging host 192.0.2.40
+!
+line vty 0 4
+ transport input ssh
+ exec-timeout 10 0
+!
+end
+"""
+
+DIFF_CHANGED = """\
+hostname edge-sw-01
+!
+interface GigabitEthernet0/1
+ description Uplink to core
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+!
+interface GigabitEthernet0/2
+ description Printers
+ switchport access vlan 30
+ spanning-tree portfast
+ storm-control broadcast level 5.00
+!
+ip route 0.0.0.0 0.0.0.0 10.20.99.2
+ntp server 192.0.2.25
+!
+line vty 0 4
+ transport input ssh
+ exec-timeout 5 0
+!
+end
+"""
+
+
+def fill_diff(window: MainWindow) -> None:
+    page = window.diff_page
+    page.left_input.setPlainText(DIFF_ORIGINAL)
+    page.right_input.setPlainText(DIFF_CHANGED)
+    page._timer.stop()  # Show the result now, not after the typing delay.
+    page.show_diff(compare(DIFF_ORIGINAL, DIFF_CHANGED))
+
+
 TOOLS = [
     ("ping-and-trace", "Ping and trace", fill_ping),
     ("dns-lookup", "DNS lookup", fill_dns),
@@ -487,6 +545,7 @@ TOOLS = [
     ("whois", "Whois", fill_whois),
     ("mac-lookup", "MAC lookup", fill_mac),
     ("notepad", "Notepad", fill_notepad),
+    ("text-diff", "Text diff", fill_diff),
 ]
 
 

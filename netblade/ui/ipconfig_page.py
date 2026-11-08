@@ -112,7 +112,9 @@ class IpConfigPage(QWidget):
         self._loaded = False
         self.structured = sys.platform == "win32"
 
-        segmented = QWidget()
+        # These two get a parent now because they are made visible below, before the layout exists.
+        # Without a parent, each would open as its own small window at startup.
+        segmented = QWidget(self)
         segmented.setObjectName("segmented")
         segmented.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
         seg_layout = QHBoxLayout(segmented)
@@ -129,7 +131,7 @@ class IpConfigPage(QWidget):
         self.view_group.idClicked.connect(self._set_view)
         segmented.setVisible(self.structured)
 
-        self.show_disconnected = QCheckBox("Show disconnected adapters")
+        self.show_disconnected = QCheckBox("Show disconnected adapters", self)
         self.show_disconnected.toggled.connect(self._render_cards)
         self.show_disconnected.setVisible(self.structured)
 

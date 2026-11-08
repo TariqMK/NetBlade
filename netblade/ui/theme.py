@@ -297,6 +297,7 @@ def _style_sheet(t: Tokens) -> str:
     QScrollBar::handle:hover {{ background: {t.text_muted}; }}
     QScrollBar::add-line, QScrollBar::sub-line {{ width: 0; height: 0; }}
     QScrollBar::add-page, QScrollBar::sub-page {{ background: transparent; }}
+    QAbstractScrollArea::corner {{ background: transparent; }}
     QToolTip {{ background: {t.raised}; color: {t.text}; border: 1px solid {strong}; padding: 4px 8px; }}
     """
 

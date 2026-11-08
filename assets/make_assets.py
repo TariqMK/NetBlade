@@ -30,7 +30,7 @@ ASSETS = Path(__file__).resolve().parent
 ICON_DIR = ASSETS / "icon"
 
 BANNER_W, BANNER_H, BANNER_SCALE = 1280, 320, 2
-TAGLINE = "Eleven network tools. One window."
+TAGLINE = "10+ Network tools. One window."
 
 app = QGuiApplication(sys.argv)
 
