@@ -15,7 +15,7 @@ NetBlade has these tools:
 - **Whois:** the owner, range and abuse contact of an IP address, AS number or domain.
 - **MAC lookup:** the vendor of one or more MAC addresses.
 - **Notepad:** temporary notes in a monospace font. Notes save automatically.
-- **Text diff:** two pasted texts side by side, with the changed lines, words or characters marked.
+- **Text diff:** two pasted texts side by side, with the different lines, words or characters marked.
 
 NetBlade never needs administrator rights. Every tool works for a normal user.
 
@@ -353,22 +353,22 @@ NetBlade keeps the notes when you close it. They are stored in your user folder.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/text-diff-dark.png">
-  <img src="assets/screenshots/text-diff-light.png" alt="Text diff comparing two switch configurations side by side, with changed words marked and gaps hatched" width="840">
+  <img src="assets/screenshots/text-diff-light.png" alt="Text diff comparing two switch configurations side by side as Text A and Text B, with different words marked and gaps hatched" width="840">
 </picture>
 
-Text diff compares two pasted texts, for example two versions of a device configuration. The comparison updates shortly after you stop typing.
+Text diff compares two pasted texts, for example two device configurations. You do not need to know which text is newer. The comparison updates shortly after you stop typing.
 
-1. Paste the first text in **Original**.
-2. Paste the second text in **Changed**.
-3. Select how closely to compare changed lines:
+1. Paste one text in **Text A**.
+2. Paste the other text in **Text B**.
+3. Select how closely to compare lines that are different:
    - **Lines:** marks the full line only.
-   - **Words:** also marks the changed words and numbers. This is the default.
-   - **Characters:** also marks the changed characters.
+   - **Words:** also marks the different words and numbers. This is the default.
+   - **Characters:** also marks the different characters.
 4. To skip differences that do not matter, select **Ignore whitespace** or **Ignore case**.
-5. Select **Next** or **Previous** to move through the changes. The line above the results shows the current change and the number of changed, added and removed lines.
-6. Select **Copy diff** to copy the changes in unified diff format.
+5. Select **Next** or **Previous** to move through the differences. The line above the results shows the current difference and the number of lines that are different, only in A and only in B.
+6. Select **Copy diff** to copy the differences in unified diff format. Text A lines start with `-` and Text B lines start with `+`.
 
-Removed text is red and has a `-` marker. Added text is green and has a `+` marker. A hatched row shows that the other text has a line here and this text has none. If you copy from the results, the hatched rows are left out.
+Text that is different or only in Text A is red and has a `-` marker. Text that is different or only in Text B is green and has a `+` marker. The colours and markers show which text a line is in. They do not show which text is newer. A hatched row shows that the other text has a line here and this text has none. If you copy from the results, the hatched rows are left out.
 
 **Note:** NetBlade does not save the text. The text is gone when you close NetBlade.
 
@@ -401,7 +401,7 @@ When a newer release is found, the version stays in the accent colour until you 
 - Some country domains have no RDAP service. Whois then tells you to use the registry's website.
 - MAC lookup needs the IEEE vendor list, which you download once.
 - Text diff compares up to 20,000 lines per text. Long lines scroll sideways and do not wrap.
-- Text diff marks words and characters only in lines up to 2,000 characters. A very large block of changed lines shows as removed and added lines, with no inner marks. The line above the results tells you when this occurs.
+- Text diff marks words and characters only in lines up to 2,000 characters. A very large block of different lines shows as lines only in Text A and lines only in Text B, with no inner marks. The line above the results tells you when this occurs.
 
 ## Run From Source
 

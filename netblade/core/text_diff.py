@@ -193,10 +193,10 @@ def compare(
 ) -> Diff:
     """Compare two texts. Raises DiffInputError if a text is over the size limit."""
     left_lines, right_lines = split_lines(left), split_lines(right)
-    for name, lines in (("original", left_lines), ("changed", right_lines)):
+    for name, lines in (("Text A", left_lines), ("Text B", right_lines)):
         if len(lines) > MAX_LINES:
             raise DiffInputError(
-                f"The {name} text has {len(lines):,} lines. The limit is {MAX_LINES:,} lines."
+                f"{name} has {len(lines):,} lines. The limit is {MAX_LINES:,} lines."
             )
 
     options = _Options(level, ignore_whitespace, ignore_case)
@@ -443,7 +443,7 @@ def unified(diff: Diff, context: int = 3) -> str:
     if not hunks:
         return ""
 
-    output = ["--- Original", "+++ Changed"]
+    output = ["--- Text A", "+++ Text B"]
     for start, end in hunks:
         rows = diff.rows[start:end]
         left_seen = sum(row.left is not None for row in diff.rows[:start])

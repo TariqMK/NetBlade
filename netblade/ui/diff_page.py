@@ -228,14 +228,14 @@ class DiffPage(QWidget):
         self._running = False
         self._dirty = False
 
-        self.left_input = self._input("Original text", "Paste the original text here.")
-        self.right_input = self._input("Changed text", "Paste the changed text here.")
+        self.left_input = self._input("Text A", "Paste the first text here.")
+        self.right_input = self._input("Text B", "Paste the second text here.")
         inputs = QHBoxLayout()
         inputs.setContentsMargins(0, 0, 0, 0)
         inputs.setSpacing(16)
         for title, editor in (
-            ("Original", self.left_input),
-            ("Changed", self.right_input),
+            ("Text A", self.left_input),
+            ("Text B", self.right_input),
         ):
             column = QVBoxLayout()
             column.setSpacing(6)
@@ -262,13 +262,13 @@ class DiffPage(QWidget):
         self.summary = caption("")
         self.summary.setWordWrap(True)
         self.previous_button = QPushButton("Previous")
-        self.previous_button.setAccessibleName("Previous change")
+        self.previous_button.setAccessibleName("Previous difference")
         self.previous_button.clicked.connect(partial(self.move_section, -1))
         self.next_button = QPushButton("Next")
-        self.next_button.setAccessibleName("Next change")
+        self.next_button.setAccessibleName("Next difference")
         self.next_button.clicked.connect(partial(self.move_section, 1))
         self.copy_button = QPushButton("Copy diff")
-        self.copy_button.setToolTip("Copy the changes in unified diff format")
+        self.copy_button.setToolTip("Copy the differences in unified diff format")
         self.copy_button.clicked.connect(self._copy_diff)
         actions = QHBoxLayout()
         actions.setSpacing(8)
@@ -282,8 +282,8 @@ class DiffPage(QWidget):
         self.error.setWordWrap(True)
         self.error.hide()
 
-        self.left_pane = DiffPane("Original text, compared", "-", "negative")
-        self.right_pane = DiffPane("Changed text, compared", "+", "positive")
+        self.left_pane = DiffPane("Text A, compared", "-", "negative")
+        self.right_pane = DiffPane("Text B, compared", "+", "positive")
         self._link_scrolling()
         self.results = QWidget()
         panes = QHBoxLayout(self.results)
@@ -449,14 +449,15 @@ class DiffPage(QWidget):
             if diff.exact_match:
                 return "No differences."
             return "No differences. Ignored differences or line endings exist."
-        parts = [f"Change {self._section + 1} of {len(diff.sections)}"]
-        for count, word in (
-            (diff.changed, "changed"),
-            (diff.added, "added"),
-            (diff.removed, "removed"),
+        parts = [f"Difference {self._section + 1} of {len(diff.sections)}"]
+        # Neutral words: the user may not know which text is the newer one.
+        for count, words in (
+            (diff.changed, "different"),
+            (diff.removed, "only in A"),
+            (diff.added, "only in B"),
         ):
             if count:
-                parts.append(f"{count:,} {word}")
+                parts.append(f"{count:,} {words}")
         text = " · ".join(parts)
         if diff.inline_skipped:
             text += ". Some long lines or large blocks have no inner highlights."

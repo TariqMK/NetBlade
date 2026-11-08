@@ -249,12 +249,12 @@ def test_ignore_case_keeps_offsets_when_case_folding_changes_length():
 @pytest.mark.parametrize(
     ("left", "right", "name"),
     [
-        ("a\n" * (MAX_LINES + 1), "b", "original"),
-        ("b", "a\n" * (MAX_LINES + 1), "changed"),
+        ("a\n" * (MAX_LINES + 1), "b", "Text A"),
+        ("b", "a\n" * (MAX_LINES + 1), "Text B"),
     ],
 )
 def test_too_many_lines_is_refused_with_a_clear_message(left, right, name):
-    with pytest.raises(DiffInputError, match=f"The {name} text has"):
+    with pytest.raises(DiffInputError, match=f"{name} has"):
         compare(left, right)
 
 
@@ -265,13 +265,7 @@ def test_unified_output():
     left = "\n".join(f"line {i}" for i in range(1, 11))
     right = left.replace("line 5", "line five")
     assert unified(compare(left, right), context=1) == (
-        "--- Original\n"
-        "+++ Changed\n"
-        "@@ -4,3 +4,3 @@\n"
-        " line 4\n"
-        "-line 5\n"
-        "+line five\n"
-        " line 6"
+        "--- Text A\n+++ Text B\n@@ -4,3 +4,3 @@\n line 4\n-line 5\n+line five\n line 6"
     )
 
 
@@ -333,7 +327,12 @@ def test_page_shows_aligned_rows_and_counts(page):
     assert page.left_pane.blockCount() == page.right_pane.blockCount() == 4
     assert page.left_pane.toPlainText() == "one\ntwo lines\nthree\n"
     assert page.right_pane.toPlainText() == "one\ntwo lines changed\nthree\nfour"
-    assert page.summary.text() == "Change 1 of 2 · 1 changed · 1 added"
+    assert page.summary.text() == "Difference 1 of 2 · 1 different · 1 only in B"
+
+
+def test_summary_counts_lines_only_in_each_text(page):
+    fill(page, "same\nonly here\nend", "same\nend\nand only here too")
+    assert page.summary.text().endswith("1 only in A · 1 only in B")
 
 
 def test_page_reports_no_differences(page):
@@ -342,7 +341,7 @@ def test_page_reports_no_differences(page):
     assert not page.next_button.isEnabled()
     assert not page.copy_button.isEnabled()
     fill(page, "Line A\n", "line a")
-    assert page.summary.text() == "Change 1 of 1 · 1 changed"
+    assert page.summary.text() == "Difference 1 of 1 · 1 different"
     page.ignore_case.setChecked(True)
     wait_for_result(page)
     assert page.summary.text() == (
@@ -370,16 +369,16 @@ def test_page_next_and_previous_move_through_changes_and_wrap(page):
     page.resize(900, 700)
     page.show()
     QCoreApplication.processEvents()
-    assert page.summary.text().startswith("Change 1 of 2")
+    assert page.summary.text().startswith("Difference 1 of 2")
     page.next_button.click()
-    assert page.summary.text().startswith("Change 2 of 2")
+    assert page.summary.text().startswith("Difference 2 of 2")
     value = page.left_pane.verticalScrollBar().value()
     assert value > 0
     assert page.right_pane.verticalScrollBar().value() == value
     page.next_button.click()
-    assert page.summary.text().startswith("Change 1 of 2")
+    assert page.summary.text().startswith("Difference 1 of 2")
     page.previous_button.click()
-    assert page.summary.text().startswith("Change 2 of 2")
+    assert page.summary.text().startswith("Difference 2 of 2")
     page.hide()
 
 
@@ -423,7 +422,7 @@ def test_copy_diff_button_copies_unified_text(page):
 def test_too_large_input_shows_the_error_and_no_results(page):
     fill(page, "a", "b")
     fill(page, "a\n" * (MAX_LINES + 1), "b")
-    assert page.error.text().startswith("The original text has")
+    assert page.error.text().startswith("Text A has")
     assert not page.error.isHidden()
     assert page.body.currentWidget() is page.empty
     fill(page, "a", "b")

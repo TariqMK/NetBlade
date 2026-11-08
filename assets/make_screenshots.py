@@ -476,7 +476,7 @@ def fill_notepad(window: MainWindow) -> None:
     page.save()  # Writes to Qt's test location, so the status shows "Saved".
 
 
-DIFF_ORIGINAL = """\
+DIFF_TEXT_A = """\
 hostname edge-sw-01
 !
 interface GigabitEthernet0/1
@@ -500,7 +500,7 @@ line vty 0 4
 end
 """
 
-DIFF_CHANGED = """\
+DIFF_TEXT_B = """\
 hostname edge-sw-01
 !
 interface GigabitEthernet0/1
@@ -527,10 +527,10 @@ end
 
 def fill_diff(window: MainWindow) -> None:
     page = window.diff_page
-    page.left_input.setPlainText(DIFF_ORIGINAL)
-    page.right_input.setPlainText(DIFF_CHANGED)
+    page.left_input.setPlainText(DIFF_TEXT_A)
+    page.right_input.setPlainText(DIFF_TEXT_B)
     page._timer.stop()  # Show the result now, not after the typing delay.
-    page.show_diff(compare(DIFF_ORIGINAL, DIFF_CHANGED))
+    page.show_diff(compare(DIFF_TEXT_A, DIFF_TEXT_B))
 
 
 TOOLS = [
