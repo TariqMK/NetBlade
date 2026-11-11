@@ -8,7 +8,9 @@ Run from the project root:  python assets/make_screenshots.py
 Output: assets/screenshots/<tool>-light.png and <tool>-dark.png
 """
 
+import base64
 import datetime as dt
+import json
 import random
 import subprocess
 import sys
@@ -23,6 +25,7 @@ sys.path.insert(0, str(ROOT))
 
 import netblade.app
 from netblade.app import MainWindow, release_qt_objects
+from netblade.core.codec import Format
 from netblade.core.curl import CurlResult
 from netblade.core.dns_lookup import DnsRecord, LookupResult
 from netblade.core.mtr import HopStats
@@ -533,6 +536,35 @@ def fill_diff(window: MainWindow) -> None:
     page.show_diff(compare(DIFF_TEXT_A, DIFF_TEXT_B))
 
 
+def sample_jwt() -> str:
+    """A made-up token: example.com names, a fixed key id and a fake signature."""
+    now = int(dt.datetime.now(dt.UTC).timestamp())
+
+    def part(value: dict) -> str:
+        raw = json.dumps(value, separators=(",", ":")).encode()
+        return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+    header = {"alg": "RS256", "typ": "JWT", "kid": "k1-2026-10"}
+    payload = {
+        "iss": "https://login.example.com/",
+        "sub": "j.smith@example.com",
+        "aud": "api.example.com",
+        "scope": "read:status write:tickets",
+        "iat": now - 900,
+        "nbf": now - 900,
+        "exp": now + 2700,
+    }
+    signature = base64.urlsafe_b64encode(rng.randbytes(64)).decode().rstrip("=")
+    return f"{part(header)}.{part(payload)}.{signature}"
+
+
+def fill_codec(window: MainWindow) -> None:
+    page = window.codec_page
+    page.set_mode(Format.JWT)
+    page.input.setPlainText("Bearer " + sample_jwt())
+    page.convert()  # Show the result now, not after the typing delay.
+
+
 TOOLS = [
     ("ping-and-trace", "Ping and trace", fill_ping),
     ("dns-lookup", "DNS lookup", fill_dns),
@@ -546,6 +578,7 @@ TOOLS = [
     ("mac-lookup", "MAC lookup", fill_mac),
     ("notepad", "Notepad", fill_notepad),
     ("text-diff", "Text diff", fill_diff),
+    ("encode-and-decode", "Encode and decode", fill_codec),
 ]
 
 

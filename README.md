@@ -1,6 +1,6 @@
 ![NetBlade. 10+ Network tools. One window.](assets/banner.png)
 
-NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, who owns an address or domain, whether a certificate is valid, and how your network adapters and subnets are set up. No command line is necessary.
+NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, who owns an address or domain, whether a certificate is valid, and how your network adapters and subnets are set up. No command line is necessary. No telemetry or tracking: NetBlade goes online only when you run a tool.
 
 NetBlade has these tools:
 
@@ -16,6 +16,7 @@ NetBlade has these tools:
 - **MAC lookup:** the vendor of one or more MAC addresses.
 - **Notepad:** temporary notes in a monospace font. Notes save automatically.
 - **Text diff:** two pasted texts side by side, with the different lines, words or characters marked.
+- **Encode and decode:** Base64, URL encoding and hex in both directions, and the contents of a JWT.
 
 NetBlade never needs administrator rights. Every tool works for a normal user.
 
@@ -47,7 +48,7 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
 
 Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. Tools after the tenth have no shortcut. The version shows next to the app name at the top of the sidebar. Select the version to check for updates.
 
-The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Notepad and Text diff.
+The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Notepad, Text diff and Encode and decode.
 
 ### Change the order of the tools
 
@@ -372,6 +373,40 @@ Text that is different or only in Text A is red and has a `-` marker. Text that 
 
 **Note:** NetBlade does not save the text. The text is gone when you close NetBlade.
 
+### Encode and decode
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/encode-and-decode-dark.png">
+  <img src="assets/screenshots/encode-and-decode-light.png" alt="Encode and decode showing a JWT from a Bearer header as a header, payload, claim times and signature" width="840">
+</picture>
+
+Encode and decode converts text to and from Base64, URL encoding and hex. It also shows the contents of a JWT. The result updates as you type.
+
+1. Select **Decode** or **Encode**.
+2. Select the format:
+   - **Base64:** standard and URL-safe Base64. Decode accepts line breaks, missing `=` padding, an `Authorization: Basic` header and a PEM block, such as a certificate.
+   - **URL:** percent-encoding, for example `%20` for a space. Encode changes every character except letters, digits and `- . _ ~`.
+   - **Hex:** two hex digits for each byte. Decode accepts spaces, colons, dashes, `0x` and `\x` between the bytes.
+   - **JWT:** decode only. Shows the header, the payload, the `iat`, `nbf` and `exp` times in UTC, and the signature. An `Authorization: Bearer` prefix is removed.
+3. Paste or type the text in **Input**. The result shows in **Output**.
+4. Read the line above the boxes. It shows the size, the type of the result and any change NetBlade made, for example **missing padding added**.
+5. Select **Copy output** to copy the result.
+
+Options:
+
+- **URL-safe** (Base64, Encode): uses `-` and `_` in place of `+` and `/`, with no `=` padding. This is the base64url format of JWTs and URLs.
+- **+ means space** (URL, Decode): decodes `+` as a space, as in query strings and form data. Clear it to keep `+`.
+
+If the pasted text looks like a different format, a message such as **This looks like a JWT.** shows. Select the button next to it, for example **Use JWT**, to change to that format.
+
+Select **Swap** to move the output to **Input** and change the direction. Use it to check that a value converts back to the original.
+
+Decoded data that is not text shows as a hex dump: the offset, 16 bytes in hex, and the printable characters. Text encoded as UTF-16, such as a PowerShell `-EncodedCommand` value, shows as text.
+
+**Caution:** The JWT view does not check the signature. Do not use it to decide if a token is genuine.
+
+**Note:** NetBlade does not save the text. The text is gone when you close NetBlade.
+
 ### Check for updates
 
 NetBlade checks for updates only when you ask. It never downloads or installs anything.
@@ -386,6 +421,20 @@ NetBlade checks for updates only when you ask. It never downloads or installs an
 When a newer release is found, the version stays in the accent colour until you restart NetBlade.
 
 **Note:** GitHub allows about 60 checks per hour from one network. If you reach the limit, try again an hour later.
+
+## Privacy
+
+- NetBlade has no telemetry, analytics, crash reporting or accounts.
+- NetBlade makes no network connection when it starts. It connects only when you run a tool.
+- The network tools contact only the host, nameserver or network that you enter. Ping and trace, DNS lookup, curl, Multi-ping, nmap and TLS certificate work this way. To find names and addresses, they also use your system DNS server. curl also follows redirects to other hosts. To stop this, clear **Follow redirects**.
+- These tools contact other services:
+  - **Whois:** the IANA bootstrap files (`data.iana.org`), to find the registry. Then the registry's RDAP server, with the address, AS number or domain that you enter.
+  - **My public IP** (Whois): `api.ipify.org`. It sends no data. The service sees your public IP address.
+  - **Download vendor list** (MAC lookup): the IEEE vendor files (`standards-oui.ieee.org`). It sends no data. Lookups then work offline.
+  - **Check for updates:** the latest release of NetBlade (`api.github.com`). It sends no data.
+- IP config, Subnet calculator, Notepad, Text diff and Encode and decode work offline.
+- Text diff and Encode and decode do not save your text.
+- Notes and the vendor list are stored in your user folder. On Windows, this is `%LOCALAPPDATA%\NetBlade\NetBlade`. The sidebar order is stored in your user settings.
 
 ## Known limitations
 
@@ -402,6 +451,8 @@ When a newer release is found, the version stays in the accent colour until you 
 - MAC lookup needs the IEEE vendor list, which you download once.
 - Text diff compares up to 20,000 lines per text. Long lines scroll sideways and do not wrap.
 - Text diff marks words and characters only in lines up to 2,000 characters. A very large block of different lines shows as lines only in Text A and lines only in Text B, with no inner marks. The line above the results tells you when this occurs.
+- Encode and decode accepts up to 10,000,000 characters. A hex dump shows the first 65,536 bytes.
+- Encode and decode encodes text as UTF-8. It cannot encode the contents of a file.
 
 ## Run From Source
 
@@ -449,7 +500,7 @@ The README screenshots are in `assets/screenshots/`, in a light and a dark versi
 python assets/make_screenshots.py
 ```
 
-The script fills each tool with sample data and saves 24 PNG files. It sends no network traffic and does not read your adapters, notes or settings. The sidebar shows the newest release tag.
+The script fills each tool with sample data and saves 26 PNG files. It sends no network traffic and does not read your adapters, notes or settings. The sidebar shows the newest release tag.
 
 ## Creating a Release
 

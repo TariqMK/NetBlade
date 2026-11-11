@@ -32,6 +32,7 @@ from netblade import APP_NAME, __version__
 from netblade.core import dns_lookup, tlscheck, update_check
 from netblade.core.update_check import UpdateError, UpdateInfo
 from netblade.ui import tasks, theme
+from netblade.ui.codec_page import CodecPage
 from netblade.ui.curl_page import CurlPage
 from netblade.ui.diff_page import DiffPage
 from netblade.ui.dns_page import DnsPage
@@ -60,6 +61,7 @@ TOOLS = [
     ("MAC lookup", "tag"),
     ("Notepad", "note"),
     ("Text diff", "diff"),
+    ("Encode and decode", "binary"),
 ]
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
 ORDER_KEY = "sidebar/tool_order"
@@ -175,6 +177,7 @@ class MainWindow(QMainWindow):
         self.mac_page = MacPage()
         self.notepad_page = NotepadPage()
         self.diff_page = DiffPage()
+        self.codec_page = CodecPage()
         pages = (
             self.ping_page,
             self.dns_page,
@@ -188,6 +191,7 @@ class MainWindow(QMainWindow):
             self.mac_page,
             self.notepad_page,
             self.diff_page,
+            self.codec_page,
         )
         self.tool_pages = dict(zip(DEFAULT_ORDER, pages, strict=True))
         self.pages = QStackedWidget()
