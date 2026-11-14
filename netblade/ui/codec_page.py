@@ -1,4 +1,4 @@
-"""Encode and decode page: Base64, URL percent-encoding, hex and JWT, converted as you type.
+"""Decoder page: Base64, URL percent-encoding, hex and JWT, converted as you type.
 
 The text stays in memory only. Tokens and auth headers are secrets, so it is never saved.
 """

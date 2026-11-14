@@ -1,4 +1,4 @@
-"""Checks Encode and decode: Base64, URL, hex and JWT conversions, errors, format detection and the page."""
+"""Checks Decoder: Base64, URL, hex and JWT conversions, errors, format detection and the page."""
 
 import base64
 import datetime as dt
@@ -353,7 +353,7 @@ def test_page_is_in_the_sidebar(qapp, tmp_path):
 
     window = MainWindow(QSettings(str(tmp_path / "s.ini"), QSettings.Format.IniFormat))
     names = window.tool_names()
-    assert names[-1] == "Encode and decode"
-    window.nav.setCurrentRow(names.index("Encode and decode"))
+    assert names[-1] == "Decoder"
+    window.nav.setCurrentRow(names.index("Decoder"))
     assert window.pages.currentWidget() is window.codec_page
     window.close()

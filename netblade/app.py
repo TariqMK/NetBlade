@@ -61,7 +61,7 @@ TOOLS = [
     ("MAC lookup", "tag"),
     ("Notepad", "note"),
     ("Text diff", "diff"),
-    ("Encode and decode", "binary"),
+    ("Decoder", "binary"),
 ]
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
 ORDER_KEY = "sidebar/tool_order"

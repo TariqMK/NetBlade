@@ -18,7 +18,7 @@ import tempfile
 from pathlib import Path
 
 from PySide6.QtCore import QSettings, QStandardPaths, Qt
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -38,6 +38,7 @@ from netblade.core.text_diff import compare
 from netblade.core.tlscheck import CertInfo, TlsResult
 from netblade.ui import theme
 from netblade.ui.curl_page import BODY_VIEW
+from netblade.ui.ipconfig_page import ADAPTERS_VIEW
 from netblade.ui.multiping_page import HostTile
 
 OUT = ROOT / "assets" / "screenshots"
@@ -162,7 +163,11 @@ Ethernet adapter Bluetooth Network Connection:
 
 def fill_ipconfig(window: MainWindow) -> None:
     page = window.ipconfig_page
-    page._loaded = True  # Never run the real ipconfig.
+    # The sample is Windows ipconfig output, so show the Windows adapter-card view on every system.
+    page.structured = True
+    page.findChild(QWidget, "segmented").setVisible(True)
+    page.view_group.button(ADAPTERS_VIEW).setChecked(True)
+    page._set_view(ADAPTERS_VIEW)
     page._on_output(IPCONFIG.strip("\n"))
 
 
@@ -578,7 +583,7 @@ TOOLS = [
     ("mac-lookup", "MAC lookup", fill_mac),
     ("notepad", "Notepad", fill_notepad),
     ("text-diff", "Text diff", fill_diff),
-    ("encode-and-decode", "Encode and decode", fill_codec),
+    ("decoder", "Decoder", fill_codec),
 ]
 
 
@@ -594,6 +599,9 @@ def capture(app: QApplication, scheme: Qt.ColorScheme, suffix: str) -> None:
         str(Path(tempfile.mkdtemp()) / "netblade.ini"), QSettings.Format.IniFormat
     )
     window = MainWindow(settings)
+    # Opening the IP config page runs the real ipconfig or ifconfig in the background, and its
+    # result can arrive after the sample data. Mark the page as loaded before anything is shown.
+    window.ipconfig_page._loaded = True
     window.resize(WIDTH, HEIGHT)
     window.show()
     settle(app)
