@@ -16,7 +16,7 @@ NetBlade has these tools:
 - **MAC lookup:** the vendor of one or more MAC addresses.
 - **Notepad:** temporary notes in a monospace font. Notes save automatically.
 - **Text diff:** two pasted texts side by side, with the different lines, words or characters marked.
-- **Encode and decode:** Base64, URL encoding and hex in both directions, and the contents of a JWT.
+- **Decoder:** Base64, URL encoding and hex in both directions, and the contents of a JWT.
 
 NetBlade never needs administrator rights. Every tool works for a normal user.
 
@@ -48,7 +48,7 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
 
 Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. Tools after the tenth have no shortcut. The version shows next to the app name at the top of the sidebar. Select the version to check for updates.
 
-The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Text diff, Encode and decode and Notepad. Notepad stays at the bottom when new tools are added, unless you move it.
+The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Text diff, Decoder and Notepad. Notepad stays at the bottom when new tools are added, unless you move it.
 
 ### Change the order of the tools
 
@@ -373,14 +373,14 @@ Text that is different or only in Text A is red and has a `-` marker. Text that 
 
 **Note:** NetBlade does not save the text. The text is gone when you close NetBlade.
 
-### Encode and decode
+### Decoder
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/encode-and-decode-dark.png">
-  <img src="assets/screenshots/encode-and-decode-light.png" alt="Encode and decode showing a JWT from a Bearer header as a header, payload, claim times and signature" width="840">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/decoder-dark.png">
+  <img src="assets/screenshots/decoder-light.png" alt="Decoder showing a JWT from a Bearer header as a header, payload, claim times and signature" width="840">
 </picture>
 
-Encode and decode converts text to and from Base64, URL encoding and hex. It also shows the contents of a JWT. The result updates as you type.
+Decoder converts text to and from Base64, URL encoding and hex. It also shows the contents of a JWT. The result updates as you type.
 
 1. Select **Decode** or **Encode**.
 2. Select the format:
@@ -432,8 +432,8 @@ When a newer release is found, the version stays in the accent colour until you 
   - **My public IP** (Whois): `api.ipify.org`. It sends no data. The service sees your public IP address.
   - **Download vendor list** (MAC lookup): the IEEE vendor files (`standards-oui.ieee.org`). It sends no data. Lookups then work offline.
   - **Check for updates:** the latest release of NetBlade (`api.github.com`). It sends no data.
-- IP config, Subnet calculator, Notepad, Text diff and Encode and decode work offline.
-- Text diff and Encode and decode do not save your text.
+- IP config, Subnet calculator, Notepad, Text diff and Decoder work offline.
+- Text diff and Decoder do not save your text.
 - Notes and the vendor list are stored in your user folder. On Windows, this is `%LOCALAPPDATA%\NetBlade\NetBlade`. The sidebar order is stored in your user settings.
 
 ## Known limitations
@@ -451,8 +451,8 @@ When a newer release is found, the version stays in the accent colour until you 
 - MAC lookup needs the IEEE vendor list, which you download once.
 - Text diff compares up to 20,000 lines per text. Long lines scroll sideways and do not wrap.
 - Text diff marks words and characters only in lines up to 2,000 characters. A very large block of different lines shows as lines only in Text A and lines only in Text B, with no inner marks. The line above the results tells you when this occurs.
-- Encode and decode accepts up to 10,000,000 characters. A hex dump shows the first 65,536 bytes.
-- Encode and decode encodes text as UTF-8. It cannot encode the contents of a file.
+- Decoder accepts up to 10,000,000 characters. A hex dump shows the first 65,536 bytes.
+- Decoder encodes text as UTF-8. It cannot encode the contents of a file.
 
 ## Run From Source
 

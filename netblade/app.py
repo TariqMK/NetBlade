@@ -60,7 +60,7 @@ TOOLS = [
     ("Whois", "landmark"),
     ("MAC lookup", "tag"),
     ("Text diff", "diff"),
-    ("Encode and decode", "binary"),
+    ("Decoder", "binary"),
     ("Notepad", "note"),  # Stays last by default; new tools are added above it.
 ]
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
