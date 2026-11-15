@@ -22,6 +22,15 @@ def test_tool_order_merges_saved_and_new_tools():
     ]  # Unknown and repeats dropped.
 
 
+def test_notepad_stays_last_unless_moved():
+    assert DEFAULT_ORDER[-1] == "Notepad"
+    default = ["A", "B", "Notepad"]
+    # A saved order from before tool B existed: B goes above Notepad, which stays last.
+    assert tool_order(["A", "Notepad"], default) == ["A", "B", "Notepad"]
+    # The user moved Notepad up: their choice is kept and new tools go at the end.
+    assert tool_order(["Notepad", "A"], default) == ["Notepad", "A", "B"]
+
+
 def test_move_current_reorders_saves_and_keeps_page(settings):
     window = MainWindow(settings)
     window.nav.setCurrentRow(2)  # IP config

@@ -59,21 +59,31 @@ TOOLS = [
     ("TLS certificate", "shield"),
     ("Whois", "landmark"),
     ("MAC lookup", "tag"),
-    ("Notepad", "note"),
     ("Text diff", "diff"),
     ("Encode and decode", "binary"),
+    ("Notepad", "note"),  # Stays last by default; new tools are added above it.
 ]
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
+LAST_TOOL = "Notepad"
 ORDER_KEY = "sidebar/tool_order"
 ToolRole = Qt.ItemDataRole.UserRole + 1
 
 
 def tool_order(
-    saved: list[str] | None, default: list[str] = DEFAULT_ORDER
+    saved: list[str] | None,
+    default: list[str] = DEFAULT_ORDER,
+    last: str = LAST_TOOL,
 ) -> list[str]:
-    """The saved sidebar order, without tools that no longer exist, plus new tools at the end."""
+    """The saved sidebar order, without tools that no longer exist, plus new tools at the end.
+
+    While `last` is still at the bottom of the saved order, new tools go just above it, so it stays
+    at the bottom. Once the user has moved it elsewhere, new tools simply go at the end.
+    """
     known = list(dict.fromkeys(name for name in (saved or []) if name in default))
-    return known + [name for name in default if name not in known]
+    new = [name for name in default if name not in known]
+    if known and known[-1] == last:
+        return known[:-1] + new + [last]
+    return known + new
 
 
 class ToolList(QListWidget):
@@ -189,9 +199,9 @@ class MainWindow(QMainWindow):
             self.tls_page,
             self.whois_page,
             self.mac_page,
-            self.notepad_page,
             self.diff_page,
             self.codec_page,
+            self.notepad_page,
         )
         self.tool_pages = dict(zip(DEFAULT_ORDER, pages, strict=True))
         self.pages = QStackedWidget()

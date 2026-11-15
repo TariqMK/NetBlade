@@ -48,7 +48,7 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
 
 Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. Tools after the tenth have no shortcut. The version shows next to the app name at the top of the sidebar. Select the version to check for updates.
 
-The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Notepad, Text diff and Encode and decode.
+The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Text diff, Encode and decode and Notepad. Notepad stays at the bottom when new tools are added, unless you move it.
 
 ### Change the order of the tools
 
