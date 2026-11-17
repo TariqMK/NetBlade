@@ -1,4 +1,4 @@
-"""TLS certificate page: certificate chain, trust, expiry and accepted TLS versions for a server."""
+"""TLS cert page: certificate chain, trust, expiry and accepted TLS versions for a server."""
 
 from __future__ import annotations
 

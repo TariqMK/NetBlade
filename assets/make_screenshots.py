@@ -571,14 +571,14 @@ def fill_codec(window: MainWindow) -> None:
 
 
 TOOLS = [
-    ("ping-and-trace", "Ping and trace", fill_ping),
+    ("ping-trace", "Ping/trace", fill_ping),
     ("dns-lookup", "DNS lookup", fill_dns),
     ("ip-config", "IP config", fill_ipconfig),
     ("curl", "curl", fill_curl),
     ("multi-ping", "Multi-ping", fill_multiping),
     ("nmap", "nmap", fill_scan),
-    ("subnet-calculator", "Subnet calculator", fill_subnet),
-    ("tls-certificate", "TLS certificate", fill_tls),
+    ("subnet-calc", "Subnet calc", fill_subnet),
+    ("tls-cert", "TLS cert", fill_tls),
     ("whois", "Whois", fill_whois),
     ("mac-lookup", "MAC lookup", fill_mac),
     ("notepad", "Notepad", fill_notepad),

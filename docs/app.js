@@ -7,7 +7,7 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const jitter = (base, spread) => Math.max(0.3, base + (Math.random() + Math.random() + Math.random() - 1.5) * spread);
 const fmt = (n) => n.toFixed(1);
 
-/* ---------- Ping and trace preview ---------- */
+/* ---------- Ping/trace preview ---------- */
 
 const HOPS = [
   { name: "router.lan", ip: "192.168.1.1", base: 1.2, spread: 0.5 },

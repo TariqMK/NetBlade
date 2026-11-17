@@ -1,4 +1,4 @@
-"""Ping and trace page: a continuous traceroute with per-hop loss, latency range bars and a latency chart."""
+"""Ping/trace page: a continuous traceroute with per-hop loss, latency range bars and a latency chart."""
 
 from __future__ import annotations
 

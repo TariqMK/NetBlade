@@ -1,4 +1,4 @@
-"""Subnet calculator page: details, binary view and subnet split for an IPv4 or IPv6 network."""
+"""Subnet calc page: details, binary view and subnet split for an IPv4 or IPv6 network."""
 
 from __future__ import annotations
 

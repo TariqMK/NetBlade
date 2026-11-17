@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import QModelIndex
 
-from netblade.app import DEFAULT_ORDER, ORDER_KEY, MainWindow, tool_order
+from netblade.app import DEFAULT_ORDER, ORDER_KEY, RENAMED, MainWindow, tool_order
 
 
 def test_tool_order_merges_saved_and_new_tools():
@@ -22,6 +22,15 @@ def test_tool_order_merges_saved_and_new_tools():
     ]  # Unknown and repeats dropped.
 
 
+def test_saved_order_with_old_names_keeps_its_places():
+    """An order saved before a tool was renamed keeps that tool where the user put it."""
+    saved = ["TLS certificate", "Subnet calculator", "Ping and trace", "curl"]
+    names = tool_order(saved)
+    assert names[:4] == ["TLS cert", "Subnet calc", "Ping/trace", "curl"]
+    assert sorted(names) == sorted(DEFAULT_ORDER)
+    assert set(RENAMED.values()) <= set(DEFAULT_ORDER)
+
+
 def test_notepad_stays_last_unless_moved():
     assert DEFAULT_ORDER[-1] == "Notepad"
     default = ["A", "B", "Notepad"]
@@ -35,7 +44,7 @@ def test_move_current_reorders_saves_and_keeps_page(settings):
     window = MainWindow(settings)
     window.nav.setCurrentRow(2)  # IP config
     window.move_current(-1)
-    expected = ["Ping and trace", "IP config", "DNS lookup", *DEFAULT_ORDER[3:]]
+    expected = ["Ping/trace", "IP config", "DNS lookup", *DEFAULT_ORDER[3:]]
     assert window.tool_names() == expected
     assert window.nav.currentRow() == 1
     assert window.pages.currentWidget() is window.ipconfig_page
@@ -52,7 +61,7 @@ def test_move_stops_at_the_ends(settings):
 
 
 def test_saved_order_is_restored_with_matching_pages(settings):
-    saved = ["Subnet calculator", "curl", "Ping and trace"]
+    saved = ["Subnet calc", "curl", "Ping/trace"]
     settings.setValue(ORDER_KEY, saved)
     window = MainWindow(settings)
     names = window.tool_names()
@@ -93,6 +102,6 @@ def test_completed_drop_saves_order(settings):
     nav.model().moveRow(QModelIndex(), 6, QModelIndex(), 0)
     nav.order_changed.emit()
     names = window.tool_names()
-    assert names[0] == "Subnet calculator"
+    assert names[0] == "Subnet calc"
     assert sorted(names) == sorted(DEFAULT_ORDER)
     assert list(settings.value(ORDER_KEY)) == names

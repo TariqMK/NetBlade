@@ -49,14 +49,14 @@ from netblade.ui.whois_page import WhoisPage
 
 SIDEBAR_WIDTH = 216
 TOOLS = [
-    ("Ping and trace", "route"),
+    ("Ping/trace", "route"),
     ("DNS lookup", "globe"),
     ("IP config", "network"),
     ("curl", "terminal"),
     ("Multi-ping", "grid"),
     ("nmap", "radar"),
-    ("Subnet calculator", "calculator"),
-    ("TLS certificate", "shield"),
+    ("Subnet calc", "calculator"),
+    ("TLS cert", "shield"),
     ("Whois", "landmark"),
     ("MAC lookup", "tag"),
     ("Text diff", "diff"),
@@ -66,6 +66,13 @@ TOOLS = [
 DEFAULT_ORDER = [name for name, _icon in TOOLS]
 LAST_TOOL = "Notepad"
 ORDER_KEY = "sidebar/tool_order"
+# Old tool names and their new names, so a sidebar order saved by an earlier version keeps its places.
+RENAMED = {
+    "Ping and trace": "Ping/trace",
+    "Subnet calculator": "Subnet calc",
+    "TLS certificate": "TLS cert",
+    "Encode and decode": "Decoder",
+}
 ToolRole = Qt.ItemDataRole.UserRole + 1
 
 
@@ -74,12 +81,13 @@ def tool_order(
     default: list[str] = DEFAULT_ORDER,
     last: str = LAST_TOOL,
 ) -> list[str]:
-    """The saved sidebar order, without tools that no longer exist, plus new tools at the end.
+    """The saved sidebar order, with old names renamed and tools that no longer exist dropped, plus new tools at the end.
 
     While `last` is still at the bottom of the saved order, new tools go just above it, so it stays
     at the bottom. Once the user has moved it elsewhere, new tools simply go at the end.
     """
-    known = list(dict.fromkeys(name for name in (saved or []) if name in default))
+    renamed = (RENAMED.get(name, name) for name in (saved or []))
+    known = list(dict.fromkeys(name for name in renamed if name in default))
     new = [name for name in default if name not in known]
     if known and known[-1] == last:
         return known[:-1] + new + [last]

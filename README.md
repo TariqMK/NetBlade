@@ -4,14 +4,14 @@ NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if 
 
 NetBlade has these tools:
 
-- **Ping and trace:** a continuous traceroute with loss and latency for each hop.
+- **Ping/trace:** a continuous traceroute with loss and latency for each hop.
 - **DNS lookup:** queries for one record type, from your system nameserver or a nameserver you choose.
 - **IP config:** your adapter configuration, the same data as `ipconfig /all`.
 - **curl:** an HTTP request built from a form. It shows the curl command, the response and the time of each phase.
 - **Multi-ping:** continuous ping of up to 10 hosts. Each host shows as a green, amber or red tile.
 - **nmap:** a port scan with the built-in scanner, or with nmap when it is installed.
-- **Subnet calculator:** network details, binary view, subnet split and route summary for IPv4 and IPv6.
-- **TLS certificate:** the certificate chain, trust, expiry and accepted TLS versions of a server.
+- **Subnet calc:** network details, binary view, subnet split and route summary for IPv4 and IPv6.
+- **TLS cert:** the certificate chain, trust, expiry and accepted TLS versions of a server.
 - **Whois:** the owner, range and abuse contact of an IP address, AS number or domain.
 - **MAC lookup:** the vendor of one or more MAC addresses.
 - **Notepad:** temporary notes in a monospace font. Notes save automatically.
@@ -21,8 +21,8 @@ NetBlade has these tools:
 NetBlade never needs administrator rights. Every tool works for a normal user.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/ping-and-trace-dark.png">
-  <img src="assets/screenshots/ping-and-trace-light.png" alt="NetBlade with Ping and trace open: the tool sidebar, a latency chart and the hop table" width="840">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/ping-trace-dark.png">
+  <img src="assets/screenshots/ping-trace-light.png" alt="NetBlade with Ping/trace open: the tool sidebar, a latency chart and the hop table" width="840">
 </picture>
 
 ## Download
@@ -48,7 +48,7 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
 
 Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. Tools after the tenth have no shortcut. The version shows next to the app name at the top of the sidebar. Select the version to check for updates.
 
-The default order is Ping and trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calculator, TLS certificate, Whois, MAC lookup, Text diff, Decoder and Notepad. Notepad stays at the bottom when new tools are added, unless you move it.
+The default order is Ping/trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calc, TLS cert, Whois, MAC lookup, Text diff, Decoder and Notepad. Notepad stays at the bottom when new tools are added, unless you move it.
 
 ### Change the order of the tools
 
@@ -65,7 +65,7 @@ NetBlade keeps the order when you close it.
 
 NetBlade follows the light or dark appearance of your system.
 
-### Ping and trace
+### Ping/trace
 
 1. Type a host name or IPv4 address in the target field, for example `1.1.1.1`.
 2. Select the probe interval: **Every 0.5 s**, **Every 1 s**, **Every 2 s** or **Every 5 s**. You can change it while the trace runs.
@@ -81,7 +81,7 @@ NetBlade follows the light or dark appearance of your system.
 
 **Note:** Many routers do not reply to traceroute probes, or reply slowly. A hop with **No reply** or with loss is usually not a problem when the hops after it show 0% loss.
 
-**Note:** Ping and trace uses IPv4 only. A host name resolves to its first IPv4 address.
+**Note:** Ping/trace uses IPv4 only. A host name resolves to its first IPv4 address.
 
 ### DNS lookup
 
@@ -238,11 +238,11 @@ The results table shows one row for each open port: **Host**, **Name**, **Port**
 
 To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy all rows.
 
-### Subnet calculator
+### Subnet calc
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/subnet-calculator-dark.png">
-  <img src="assets/screenshots/subnet-calculator-light.png" alt="Subnet calculator showing details, binary view and a split into /24 networks" width="840">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/subnet-calc-dark.png">
+  <img src="assets/screenshots/subnet-calc-light.png" alt="Subnet calc showing details, binary view and a split into /24 networks" width="840">
 </picture>
 
 1. Type an address with a prefix length or a mask. For example: `192.168.1.10/24`, `10.0.0.1 255.255.255.0` or `2001:db8::1/64`.
@@ -259,7 +259,7 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 
 #### Summarise routes
 
-1. Select **Summarise routes** at the top of the Subnet calculator.
+1. Select **Summarise routes** at the top of Subnet calc.
 2. Paste the networks or addresses, one per line or separated by commas.
 3. Read the **Summary**:
    - **Exact summary:** the fewest routes that cover your list and nothing else.
@@ -270,11 +270,11 @@ To copy results, select rows and press **Ctrl+C**, or select **Copy** to copy al
 
 **Note:** An entry with host bits set, for example `10.1.6.7/24`, counts as its network, `10.1.6.0/24`. Entries that are not networks or addresses are skipped. A note shows both.
 
-### TLS certificate
+### TLS cert
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/tls-certificate-dark.png">
-  <img src="assets/screenshots/tls-certificate-light.png" alt="TLS certificate showing a trusted chain, TLS versions and certificate cards" width="840">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/tls-cert-dark.png">
+  <img src="assets/screenshots/tls-cert-light.png" alt="TLS cert showing a trusted chain, TLS versions and certificate cards" width="840">
 </picture>
 
 1. Type a server, for example `example.com`, `example.com:8443` or `https://example.com`. The default port is 443.
@@ -426,27 +426,27 @@ When a newer release is found, the version stays in the accent colour until you 
 
 - NetBlade has no telemetry, analytics, crash reporting or accounts.
 - NetBlade makes no network connection when it starts. It connects only when you run a tool.
-- The network tools contact only the host, nameserver or network that you enter. Ping and trace, DNS lookup, curl, Multi-ping, nmap and TLS certificate work this way. To find names and addresses, they also use your system DNS server. curl also follows redirects to other hosts. To stop this, clear **Follow redirects**.
+- The network tools contact only the host, nameserver or network that you enter. Ping/trace, DNS lookup, curl, Multi-ping, nmap and TLS cert work this way. To find names and addresses, they also use your system DNS server. curl also follows redirects to other hosts. To stop this, clear **Follow redirects**.
 - These tools contact other services:
   - **Whois:** the IANA bootstrap files (`data.iana.org`), to find the registry. Then the registry's RDAP server, with the address, AS number or domain that you enter.
   - **My public IP** (Whois): `api.ipify.org`. It sends no data. The service sees your public IP address.
   - **Download vendor list** (MAC lookup): the IEEE vendor files (`standards-oui.ieee.org`). It sends no data. Lookups then work offline.
   - **Check for updates:** the latest release of NetBlade (`api.github.com`). It sends no data.
-- IP config, Subnet calculator, Notepad, Text diff and Decoder work offline.
+- IP config, Subnet calc, Notepad, Text diff and Decoder work offline.
 - Text diff and Decoder do not save your text.
 - Notes and the vendor list are stored in your user folder. On Windows, this is `%LOCALAPPDATA%\NetBlade\NetBlade`. The sidebar order is stored in your user settings.
 
 ## Known limitations
 
-- Ping and trace and Multi-ping use IPv4 only.
-- On Linux, Ping and trace needs unprivileged ICMP. Some distributions block it. If the tool shows an ICMP error, ask your administrator to allow your group in `net.ipv4.ping_group_range`.
-- Ping and trace and Multi-ping on macOS and Linux are not yet tested on real systems.
+- Ping/trace and Multi-ping use IPv4 only.
+- On Linux, Ping/trace needs unprivileged ICMP. Some distributions block it. If the tool shows an ICMP error, ask your administrator to allow your group in `net.ipv4.ping_group_range`.
+- Ping/trace and Multi-ping on macOS and Linux are not yet tested on real systems.
 - The curl tool needs curl on the system. Windows 10 and later and macOS include it. On Linux, install the `curl` package if it is missing.
 - The curl tool shows the first 1 MB of a body.
 - The copied curl command uses double quotes on Windows. In PowerShell, a value that contains `"` or `$` can need changes.
 - The built-in scanner scans TCP only, IPv4 only, and up to 1,024 hosts at a time. It does not detect versions or operating systems.
 - nmap mode needs nmap installed on the system. nmap mode is not yet tested with a real nmap installation.
-- The TLS certificate tool does not support STARTTLS, for example on mail ports 25 and 587.
+- The TLS cert tool does not support STARTTLS, for example on mail ports 25 and 587.
 - Some country domains have no RDAP service. Whois then tells you to use the registry's website.
 - MAC lookup needs the IEEE vendor list, which you download once.
 - Text diff compares up to 20,000 lines per text. Long lines scroll sideways and do not wrap.
