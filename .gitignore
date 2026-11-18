@@ -31,6 +31,9 @@ GEMINI.md
 .github/prompts/
 .mcp.json
 
+# NetBlade data folder, created beside the app (the project root when run from source)
+NetBlade-data/
+
 # Python
 __pycache__/
 *.py[cod]

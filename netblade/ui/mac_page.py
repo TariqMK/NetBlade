@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, QStandardPaths, Qt
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -32,14 +32,6 @@ from netblade.core.oui import (
 from netblade.ui import theme
 from netblade.ui.tasks import run_in_thread
 from netblade.ui.widgets import caption
-
-
-def data_folder() -> Path:
-    """Per-user folder for the IEEE lists. No admin rights needed."""
-    base = QStandardPaths.writableLocation(
-        QStandardPaths.StandardLocation.AppLocalDataLocation
-    )
-    return Path(base or Path.home() / ".netblade") / "oui"
 
 
 class ResultModel(QAbstractTableModel):
@@ -89,10 +81,11 @@ class ResultModel(QAbstractTableModel):
 
 
 class MacPage(QWidget):
-    def __init__(self, folder: Path | None = None) -> None:
+    def __init__(self, folder: Path) -> None:
+        """`folder` holds the downloaded IEEE vendor lists."""
         super().__init__()
         self.setObjectName("page")
-        self.folder = folder or data_folder()
+        self.folder = folder
         self.database: OuiDatabase | None = None
         self._loaded = False
 

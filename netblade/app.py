@@ -2,6 +2,7 @@
 
 import gc
 import sys
+from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication, QEvent, QSettings, QSize, Qt, QUrl, Signal
 from PySide6.QtGui import (
@@ -15,6 +16,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -28,7 +30,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from netblade import APP_NAME, __version__
+from netblade import APP_NAME, __version__, data_folder
 from netblade.core import dns_lookup, tlscheck, update_check
 from netblade.core.update_check import UpdateError, UpdateInfo
 from netblade.ui import tasks, theme
@@ -128,9 +130,26 @@ def update_summary(info: UpdateInfo) -> tuple[str, str]:
 class MainWindow(QMainWindow):
     """Top-level NetBlade window."""
 
-    def __init__(self, settings: QSettings | None = None) -> None:
+    def __init__(
+        self,
+        settings: QSettings | None = None,
+        data: Path | None = None,
+        saved: bool = True,
+    ) -> None:
+        """`data` is the folder for notes, the vendor list and, without `settings`, the settings file.
+
+        Without `data`, a temporary folder is used, so nothing real is read or changed. `saved` is
+        False when the user chose to continue without a data folder; the notes then say so.
+        """
         super().__init__()
-        self.settings = settings if settings is not None else QSettings()
+        self.data = data if data is not None else data_folder.session_folder()
+        self.settings = (
+            settings
+            if settings is not None
+            else QSettings(
+                str(self.data / data_folder.SETTINGS_FILE), QSettings.Format.IniFormat
+            )
+        )
         self.setWindowTitle(APP_NAME)
         self.setMinimumSize(880, 560)
         self.resize(1120, 720)
@@ -192,8 +211,8 @@ class MainWindow(QMainWindow):
         self.subnet_page = SubnetPage()
         self.tls_page = TlsPage()
         self.whois_page = WhoisPage()
-        self.mac_page = MacPage()
-        self.notepad_page = NotepadPage()
+        self.mac_page = MacPage(self.data / data_folder.VENDOR_FOLDER)
+        self.notepad_page = NotepadPage(self.data / data_folder.NOTES_FILE, saved=saved)
         self.diff_page = DiffPage()
         self.codec_page = CodecPage()
         pages = (
@@ -413,12 +432,16 @@ class MainWindow(QMainWindow):
 def main(argv: list[str]) -> int:
     """Start the app. `--self-test` builds the window, checks bundled modules, prints the version and exits."""
     app = QApplication(argv)
-    # QSettings keeps the sidebar order under NetBlade/NetBlade.
     app.setOrganizationName(APP_NAME)
     app.setApplicationName(APP_NAME)
     app.setWindowIcon(app_icon())
     theme.apply(app)
-    window = MainWindow()
+    self_test = "--self-test" in argv
+    # The self-test must never show a dialog or leave files beside the build.
+    data, saved = (
+        (data_folder.session_folder(), True) if self_test else choose_data_folder()
+    )
+    window = MainWindow(data=data, saved=saved)
 
     def on_scheme_changed(_scheme) -> None:
         theme.apply(app)
@@ -427,12 +450,43 @@ def main(argv: list[str]) -> int:
     app.styleHints().colorSchemeChanged.connect(on_scheme_changed)
 
     try:
-        if "--self-test" in argv:
+        if self_test:
             return _self_test(window)
         window.show()
         return app.exec()
     finally:
         release_qt_objects()
+
+
+def choose_data_folder() -> tuple[Path, bool]:
+    """The data folder beside the app. If it can't be written to, the user chooses what to do.
+
+    NetBlade never quietly saves somewhere else. Returns the folder, and False when the user chose
+    to continue without saving (a temporary folder, deleted when NetBlade closes).
+    """
+    folder = data_folder.default_folder()
+    while not data_folder.can_write(folder):
+        box = QMessageBox(
+            QMessageBox.Icon.Warning, APP_NAME, "NetBlade can't save its data."
+        )
+        box.setInformativeText(
+            f"NetBlade saves notes, the MAC vendor list and the sidebar order in this folder:\n\n"
+            f"{folder}\n\n"
+            "You don't have permission to write there. Move NetBlade to a folder you can write to, "
+            "or choose another folder for this session."
+        )
+        choose = box.addButton("Choose folder…", QMessageBox.ButtonRole.AcceptRole)
+        box.addButton("Continue without saving", QMessageBox.ButtonRole.RejectRole)
+        box.setDefaultButton(choose)
+        box.exec()
+        if box.clickedButton() is not choose:
+            return data_folder.session_folder(), False
+        chosen = QFileDialog.getExistingDirectory(
+            None, "Choose a folder for NetBlade data"
+        )
+        if chosen:
+            folder = Path(chosen) / data_folder.FOLDER_NAME
+    return folder, True
 
 
 def _self_test(window: MainWindow) -> int:

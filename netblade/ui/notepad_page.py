@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QStandardPaths, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFontMetricsF, QTextOption
 from PySide6.QtWidgets import (
     QApplication,
@@ -25,26 +25,24 @@ SAVE_DELAY_MS = 800  # Save shortly after typing stops, not on every key press.
 TAB_WIDTH = 4
 
 
-def notes_file() -> Path:
-    """Per-user notes file. No admin rights needed."""
-    base = QStandardPaths.writableLocation(
-        QStandardPaths.StandardLocation.AppLocalDataLocation
-    )
-    return Path(base or Path.home() / ".netblade") / "notes.txt"
-
-
 class NotepadPage(QWidget):
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(self, path: Path, saved: bool = True) -> None:
+        """`saved` is False when NetBlade has no data folder: `path` is then in a temporary folder."""
         super().__init__()
         self.setObjectName("page")
-        self.path = path or notes_file()
+        self.path = path
+        self._saved_word = "Saved" if saved else "Kept until NetBlade closes"
 
         self.editor = QPlainTextEdit()
         self.editor.setObjectName("raw")
         self.editor.setFont(theme.mono_font(theme.BASE_PX))
         self.editor.setPlaceholderText(
             "Temporary notes: paste output, IP addresses, configs or anything else.\n"
-            "Notes save automatically and are kept when NetBlade closes."
+            + (
+                "Notes save automatically and are kept when NetBlade closes."
+                if saved
+                else "NetBlade has no data folder, so notes are lost when NetBlade closes."
+            )
         )
         self.editor.setAccessibleName("Notes")
         self.editor.setTabStopDistance(
@@ -97,7 +95,7 @@ class NotepadPage(QWidget):
                 f"Can't read the saved notes: {error.strerror or error}"
             )
         self.editor.setPlainText(text)
-        self._update_status("Saved" if text else "")
+        self._update_status(self._saved_word if text else "")
 
     def _text_changed(self) -> None:
         self._update_status("Saving…")
@@ -116,7 +114,7 @@ class NotepadPage(QWidget):
         except OSError as error:
             self.status.setText(f"Can't save the notes: {error.strerror or error}")
             return
-        self._update_status("Saved")
+        self._update_status(self._saved_word)
 
     def _update_status(self, state: str) -> None:
         text = self.editor.toPlainText()
