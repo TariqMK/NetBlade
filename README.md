@@ -1,22 +1,22 @@
 ![NetBlade. 10+ Network tools. One window.](assets/banner.png)
 
-NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, who owns an address or domain, whether a certificate is valid, and how your network adapters and subnets are set up. No command line is necessary. No telemetry or tracking: NetBlade goes online only when you run a tool.
+NetBlade is a desktop network toolkit for Windows, macOS and Linux. It shows if a host is reachable, where the path to it loses packets or slows down, what DNS returns, how a web server answers, which ports are open, who owns an address or domain, whether a certificate is valid, and how your network adapters and subnets are set up. No command line is necessary. No telemetry or tracking. NetBlade goes online only when you run a tool that needs the network. See [Privacy](#privacy).
 
 NetBlade has these tools:
 
-- **Ping/trace:** a continuous traceroute with loss and latency for each hop.
-- **DNS lookup:** queries for one record type, from your system nameserver or a nameserver you choose.
-- **IP config:** your adapter configuration, the same data as `ipconfig /all`.
-- **curl:** an HTTP request built from a form. It shows the curl command, the response and the time of each phase.
-- **Multi-ping:** continuous ping of up to 10 hosts. Each host shows as a green, amber or red tile.
-- **nmap:** a port scan with the built-in scanner, or with nmap when it is installed.
-- **Subnet calc:** network details, binary view, subnet split and route summary for IPv4 and IPv6.
-- **TLS cert:** the certificate chain, trust, expiry and accepted TLS versions of a server.
-- **Whois:** the owner, range and abuse contact of an IP address, AS number or domain.
-- **MAC lookup:** the vendor of one or more MAC addresses.
-- **Notepad:** temporary notes in a monospace font. Notes save automatically.
-- **Text diff:** two pasted texts side by side, with the different lines, words or characters marked.
-- **Decoder:** Base64, URL encoding and hex in both directions, and the contents of a JWT.
+- [**Ping/trace**](#pingtrace): a continuous traceroute with loss and latency for each hop.
+- [**DNS lookup**](#dns-lookup): queries for one record type, from your system nameserver or a nameserver you choose.
+- [**IP config**](#ip-config): your adapter configuration, the same data as `ipconfig /all`.
+- [**curl**](#curl): an HTTP request built from a form. It shows the curl command, the response and the time of each phase.
+- [**Multi-ping**](#multi-ping): continuous ping of up to 10 hosts. Each host shows as a green, amber or red tile.
+- [**nmap**](#nmap): a port scan with the built-in scanner, or with nmap when it is installed.
+- [**Subnet calc**](#subnet-calc): network details, binary view, subnet split and route summary for IPv4 and IPv6.
+- [**TLS cert**](#tls-cert): the certificate chain, trust, expiry and accepted TLS versions of a server.
+- [**Whois**](#whois): the owner, range and abuse contact of an IP address, AS number or domain.
+- [**MAC lookup**](#mac-lookup): the vendor of one or more MAC addresses.
+- [**Text diff**](#text-diff): two pasted texts side by side, with the different lines, words or characters marked.
+- [**Decoder**](#decoder): Base64, URL encoding and hex in both directions, and the contents of a JWT.
+- [**Notepad**](#notepad): temporary notes in a monospace font. Notes save automatically.
 
 NetBlade never needs administrator rights. Every tool works for a normal user.
 
@@ -32,9 +32,9 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
    - Windows (x64): `NetBlade-vX.Y.Z-windows-x64.exe`
    - macOS (Apple Silicon): `NetBlade-vX.Y.Z-macos-arm64.zip`
    - Linux (x64): `NetBlade-vX.Y.Z-linux-x64.tar.gz`
-3. Windows: run the `.exe` file. No installation is necessary.
+3. Windows: put the `.exe` file in a folder you can write to, for example `Documents\NetBlade`. Run it. No installation is necessary.
 4. macOS: open the `.zip` file. Move `NetBlade.app` to the Applications folder.
-5. Linux: extract the `.tar.gz` file. Run the `NetBlade` file.
+5. Linux: extract the `.tar.gz` file to a folder you can write to. Run the `NetBlade` file.
 
 **Note:** The builds are not code-signed. Windows SmartScreen can show a warning. Select **More info**, then **Run anyway**.
 
@@ -44,11 +44,47 @@ NetBlade never needs administrator rights. Every tool works for a normal user.
 2. Scroll down to the message about NetBlade.
 3. Select **Open Anyway**.
 
+## Your Data
+
+NetBlade saves notes, the MAC vendor list and the sidebar order in a `NetBlade-data` folder beside the app. On macOS, the folder is beside `NetBlade.app`. NetBlade creates the folder the first time it saves something.
+
+To move NetBlade to another folder, drive or computer, move the app and `NetBlade-data` together.
+
+**Note:** Keep NetBlade in a folder you can write to. If NetBlade can't write beside the app, it shows a message when it starts. Select one of these:
+
+- **Choose folder…**: NetBlade saves in a `NetBlade-data` folder inside the folder you choose, for this session.
+- **Continue without saving**: NetBlade works as usual, but notes, the vendor list and the sidebar order are lost when it closes.
+
+**Note:** Versions up to v1.5.1 saved this data in your user folder and system settings. Newer versions start with an empty `NetBlade-data` folder and do not copy the old data. The old data stays in these places until you delete it:
+
+- Windows: `%LOCALAPPDATA%\NetBlade\NetBlade` and the registry key `HKEY_CURRENT_USER\Software\NetBlade\NetBlade`
+- macOS: `~/Library/Application Support/NetBlade/NetBlade` and `~/Library/Preferences/com.netblade.NetBlade.plist`
+- Linux: `~/.local/share/NetBlade/NetBlade` and `~/.config/NetBlade/NetBlade.conf`
+
+## Privacy
+
+- NetBlade has no telemetry, analytics, crash reporting or accounts.
+- NetBlade makes no network connection when it starts. It connects only when you run a tool or select the version to check for updates.
+- The network tools contact only the host, nameserver or network that you enter. Ping/trace, DNS lookup, curl, Multi-ping, nmap and TLS cert work this way. To find names and addresses, they also use your system DNS server. curl also follows redirects to other hosts. To stop this, clear **Follow redirects**.
+- These tools contact other services:
+  - **Whois:** the IANA bootstrap files (`data.iana.org`), to find the registry. Then the registry's RDAP server, with the address, AS number or domain that you enter.
+  - **My public IP** (Whois): `api.ipify.org`. It sends no data. The service sees your public IP address.
+  - **Download vendor list** (MAC lookup): the IEEE vendor files (`standards-oui.ieee.org`). It sends no data. Lookups then work offline.
+  - **Check for updates:** the latest release of NetBlade (`api.github.com`). It sends no data.
+- **TLS cert** asks the operating system if a certificate is trusted, as a browser does. The operating system can download a missing root or intermediate certificate from its vendor during this check.
+- IP config, Subnet calc, Notepad, Text diff and Decoder work offline.
+- Text diff and Decoder do not save your text.
+- Notes, the vendor list and the sidebar order are stored in the `NetBlade-data` folder beside the app. NetBlade keeps no data in your user folder or the registry. Its temporary files are deleted when it closes (see [Your Data](#your-data)).
+
 ## Use
 
-Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. Tools after the tenth have no shortcut. The version shows next to the app name at the top of the sidebar. Select the version to check for updates.
+### Open a tool
+
+Select a tool in the sidebar. Or press **Ctrl+1** to **Ctrl+9** and **Ctrl+0**: **Ctrl+1** opens the top tool in the sidebar, **Ctrl+2** the second tool, and so on. **Ctrl+0** opens the tenth tool. Tools after the tenth have no shortcut.
 
 The default order is Ping/trace, DNS lookup, IP config, curl, Multi-ping, nmap, Subnet calc, TLS cert, Whois, MAC lookup, Text diff, Decoder and Notepad. Notepad stays at the bottom when new tools are added, unless you move it.
+
+NetBlade follows the light or dark appearance of your system.
 
 ### Change the order of the tools
 
@@ -63,7 +99,24 @@ NetBlade keeps the order when you close it.
 
 **Note:** The **Ctrl+1** to **Ctrl+0** shortcuts follow the new order.
 
-NetBlade follows the light or dark appearance of your system.
+### Check for updates
+
+NetBlade checks for updates only when you ask. It never downloads or installs anything.
+
+1. Select the version next to the app name at the top of the sidebar, for example **v1.5.1**. To use the keyboard, press **Tab** until the version is selected, then press **Space**.
+2. Wait while the version shows **checking…**. The check takes a few seconds at most.
+3. Read the result:
+   - **NetBlade is up to date.** You have the latest release.
+   - **NetBlade vX.Y.Z is available.** Select **Show Details…** to read what changed. Select **Open release page** to download the new version from GitHub.
+   - If the check fails, a message tells you why, for example no internet connection.
+
+When a newer release is found, the version stays in the accent colour until you restart NetBlade.
+
+**Note:** GitHub allows about 60 checks per hour from one network. If you reach the limit, try again an hour later.
+
+## Tools
+
+Each section below is one tool, in the default sidebar order.
 
 ### Ping/trace
 
@@ -332,24 +385,6 @@ NetBlade explains MAC addresses that have no vendor:
 
 To copy rows, select them and press **Ctrl+C**, or select **Copy** to copy all rows.
 
-### Notepad
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/notepad-dark.png">
-  <img src="assets/screenshots/notepad-light.png" alt="Notepad with site visit notes in a monospace font" width="840">
-</picture>
-
-The Notepad keeps temporary notes in a monospace font, so columns of addresses and command output line up.
-
-1. Type or paste your notes. NetBlade saves them automatically, shortly after you stop typing.
-2. Select **Wrap long lines** to fit long lines to the window. Clear it to scroll long lines sideways.
-3. Select **Copy all** to copy the notes, or **Save as…** to save a copy as a text file.
-4. To delete all notes, select **Clear**, then **Discard**.
-
-**Caution:** **Clear** deletes the notes and can't be undone.
-
-NetBlade keeps the notes when you close it. They are stored in your user folder.
-
 ### Text diff
 
 <picture>
@@ -407,34 +442,23 @@ Decoded data that is not text shows as a hex dump: the offset, 16 bytes in hex, 
 
 **Note:** NetBlade does not save the text. The text is gone when you close NetBlade.
 
-### Check for updates
+### Notepad
 
-NetBlade checks for updates only when you ask. It never downloads or installs anything.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/notepad-dark.png">
+  <img src="assets/screenshots/notepad-light.png" alt="Notepad with site visit notes in a monospace font" width="840">
+</picture>
 
-1. Select the version next to the app name at the top of the sidebar, for example **v1.3.0**. To use the keyboard, press **Tab** until the version is selected, then press **Space**.
-2. Wait while the version shows **checking…**. The check takes a few seconds at most.
-3. Read the result:
-   - **NetBlade is up to date.** You have the latest release.
-   - **NetBlade vX.Y.Z is available.** Select **Show Details…** to read what changed. Select **Open release page** to download the new version from GitHub.
-   - If the check fails, a message tells you why, for example no internet connection.
+The Notepad keeps temporary notes in a monospace font, so columns of addresses and command output line up.
 
-When a newer release is found, the version stays in the accent colour until you restart NetBlade.
+1. Type or paste your notes. NetBlade saves them automatically, shortly after you stop typing.
+2. Select **Wrap long lines** to fit long lines to the window. Clear it to scroll long lines sideways.
+3. Select **Copy all** to copy the notes, or **Save as…** to save a copy as a text file.
+4. To delete all notes, select **Clear**, then **Discard**.
 
-**Note:** GitHub allows about 60 checks per hour from one network. If you reach the limit, try again an hour later.
+**Caution:** **Clear** deletes the notes and can't be undone.
 
-## Privacy
-
-- NetBlade has no telemetry, analytics, crash reporting or accounts.
-- NetBlade makes no network connection when it starts. It connects only when you run a tool.
-- The network tools contact only the host, nameserver or network that you enter. Ping/trace, DNS lookup, curl, Multi-ping, nmap and TLS cert work this way. To find names and addresses, they also use your system DNS server. curl also follows redirects to other hosts. To stop this, clear **Follow redirects**.
-- These tools contact other services:
-  - **Whois:** the IANA bootstrap files (`data.iana.org`), to find the registry. Then the registry's RDAP server, with the address, AS number or domain that you enter.
-  - **My public IP** (Whois): `api.ipify.org`. It sends no data. The service sees your public IP address.
-  - **Download vendor list** (MAC lookup): the IEEE vendor files (`standards-oui.ieee.org`). It sends no data. Lookups then work offline.
-  - **Check for updates:** the latest release of NetBlade (`api.github.com`). It sends no data.
-- IP config, Subnet calc, Notepad, Text diff and Decoder work offline.
-- Text diff and Decoder do not save your text.
-- Notes and the vendor list are stored in your user folder. On Windows, this is `%LOCALAPPDATA%\NetBlade\NetBlade`. The sidebar order is stored in your user settings.
+NetBlade keeps the notes when you close it. They are stored in the `NetBlade-data` folder beside the app (see [Your Data](#your-data)).
 
 ## Known limitations
 
@@ -466,15 +490,17 @@ Requires Python 3.13 or later.
    ```
 
    ```bash
-   .venv/Scripts/pip install -e ".[dev]"
+   .venv/Scripts/python -m pip install -e ".[dev]"
    ```
 
-   On macOS and Linux, use `.venv/bin/pip`.
+   On macOS and Linux, use `.venv/bin/python` in place of `.venv/Scripts/python`, here and in step 3.
 3. Start the app:
 
    ```bash
-   python -m netblade
+   .venv/Scripts/python -m netblade
    ```
+
+A source run saves its data in a `NetBlade-data` folder in the project folder. Git ignores this folder.
 
 A source run shows the development version `v0.0.0.dev0`. **Check for updates** then reports a development build and names the latest release.
 
@@ -492,7 +518,7 @@ Check code style with:
 ruff check .
 ```
 
-## Update the Screenshots
+## Update the Screenshots and Brand Images
 
 The README screenshots are in `assets/screenshots/`, in a light and a dark version. To make them again from the current source:
 
@@ -500,7 +526,15 @@ The README screenshots are in `assets/screenshots/`, in a light and a dark versi
 python assets/make_screenshots.py
 ```
 
-The script fills each tool with sample data and saves 26 PNG files. It sends no network traffic and does not read your adapters, notes or settings. The sidebar shows the newest release tag.
+The script fills each tool with sample data and saves 26 PNG files. It sends no network traffic and does not read your adapters, notes, settings or `NetBlade-data` folder. The sidebar shows the newest release tag.
+
+The app icon, banner and social card are made from the icon in `netblade/ui/icons.py`. To make them again, run this on Windows (the banner uses Windows fonts):
+
+```bash
+python assets/make_assets.py
+```
+
+**Note:** The site in `docs/` has its own copies of `icon.svg`, `apple-touch-icon.png` and `social-card.png`. Copy the new files there after you run the script. Upload the new social card on GitHub under **Settings** > **General** > **Social preview**.
 
 ## Creating a Release
 

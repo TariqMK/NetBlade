@@ -51,7 +51,7 @@
         <a class="btn" id="hero-download" href="#download">Download</a>
         <a class="btn btn-ghost" href="https://github.com/TariqMK/NetBlade">View source</a>
       </div>
-      <p class="meta mono" id="hero-meta">Free · No installation on Windows</p>
+      <p class="meta mono" id="hero-meta">Free · No tracking · No installation on Windows</p>
     </div>
 
     <!-- Product preview: Ping/trace -->
@@ -121,7 +121,7 @@
     </div>
     <div>
       <h3>One file to run</h3>
-      <p>The Windows build is a single <code>.exe</code>. No installer and no services. Only your notes and settings stay, in your user profile.</p>
+      <p>The Windows build is a single <code>.exe</code>. No installer and no services. Notes and settings stay in a <code>NetBlade-data</code> folder beside the app, so they move with it.</p>
     </div>
     <div>
       <h3>See the real command</h3>
@@ -129,7 +129,7 @@
     </div>
     <div>
       <h3>Nothing sent home</h3>
-      <p>No telemetry, no tracking, no accounts. NetBlade goes online only when you run a tool or check for updates. Notes stay on your computer.</p>
+      <p>No telemetry, no tracking, no accounts. NetBlade goes online only when you run a tool that needs the network, or check for updates. IP config, Subnet calc, Text diff, Decoder and Notepad work offline.</p>
     </div>
   </section>
 
@@ -200,7 +200,7 @@
       <!-- All tools -->
       <ol class="toolgrid">
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>1</kbd></p><h4>Ping/trace</h4><p>A continuous traceroute with loss and latency for each hop.</p></li>
-        <li><p class="keys"><kbd>Ctrl</kbd><kbd>2</kbd></p><h4>DNS lookup</h4><p>Any record type, from your nameserver or one you choose.</p></li>
+        <li><p class="keys"><kbd>Ctrl</kbd><kbd>2</kbd></p><h4>DNS lookup</h4><p>Ten record types, from your nameserver or one you choose.</p></li>
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>3</kbd></p><h4>IP config</h4><p>Your adapters as readable cards. The same data as <code>ipconfig /all</code>.</p></li>
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>4</kbd></p><h4>curl</h4><p>HTTP requests from a form, with the time of each phase.</p></li>
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>5</kbd></p><h4>Multi-ping</h4><p>Up to 10 hosts as green, amber or red tiles.</p></li>
@@ -209,9 +209,9 @@
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>8</kbd></p><h4>TLS cert</h4><p>Chain, trust, expiry and accepted TLS versions.</p></li>
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>9</kbd></p><h4>Whois</h4><p>Owner, range and abuse contact of an IP, AS number or domain.</p></li>
         <li><p class="keys"><kbd>Ctrl</kbd><kbd>0</kbd></p><h4>MAC lookup</h4><p>The vendor of a MAC address, offline after one download.</p></li>
+        <li><p class="keys"><span class="mono muted">Sidebar</span></p><h4>Text diff</h4><p>Paste two texts and see the different lines, words or characters. Text is never saved.</p></li>
+        <li><p class="keys"><span class="mono muted">Sidebar</span></p><h4>Decoder</h4><p>Base64, URL and hex both ways. Reads the contents of a JWT. Text is never saved.</p></li>
         <li><p class="keys"><span class="mono muted">Sidebar</span></p><h4>Notepad</h4><p>Scratch notes in a monospace font. Saved as you type.</p></li>
-        <li><p class="keys"><span class="mono muted">Sidebar</span></p><h4>Text diff</h4><p>Paste two texts and see the different lines, words or characters.</p></li>
-        <li><p class="keys"><span class="mono muted">Sidebar</span></p><h4>Decoder</h4><p>Base64, URL and hex both ways. Reads the contents of a JWT.</p></li>
         <li class="reorder"><p class="keys"><kbd>Alt</kbd><kbd>↑</kbd><kbd>↓</kbd></p><h4>Your order</h4><p>Drag tools in the sidebar, or move them with the keyboard. The shortcuts follow.</p></li>
       </ol>
     </div>
@@ -228,7 +228,7 @@
         <a class="platform" data-os="windows" href="https://github.com/TariqMK/NetBlade/releases/latest">
           <span class="os">Windows</span>
           <span class="arch mono">x64 · .exe</span>
-          <span class="note">Run the file. No installation. If SmartScreen shows a warning, select More info, then Run anyway.</span>
+          <span class="note">Put the file in a folder you can write to and run it. No installation. If SmartScreen shows a warning, select More info, then Run anyway.</span>
           <span class="go mono">Download →</span>
         </a>
         <a class="platform" data-os="macos" href="https://github.com/TariqMK/NetBlade/releases/latest">
@@ -240,7 +240,7 @@
         <a class="platform" data-os="linux" href="https://github.com/TariqMK/NetBlade/releases/latest">
           <span class="os">Linux</span>
           <span class="arch mono">x64 · .tar.gz</span>
-          <span class="note">Extract the archive and run the NetBlade file. The curl tool needs the curl package.</span>
+          <span class="note">Extract the archive to a folder you can write to and run the NetBlade file. The curl tool needs the curl package.</span>
           <span class="go mono">Download →</span>
         </a>
       </div>
