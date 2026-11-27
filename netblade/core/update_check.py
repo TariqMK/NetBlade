@@ -9,6 +9,7 @@ import urllib.request
 from dataclasses import dataclass
 
 from netblade import APP_NAME, __version__
+from netblade.core import web
 
 REPOSITORY = "TariqMK/NetBlade"
 LATEST_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
@@ -82,7 +83,7 @@ def check(current: str = __version__) -> UpdateInfo:
         headers={"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"},
     )
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
+        with web.urlopen(request, TIMEOUT_S) as response:
             raw = response.read()
     except urllib.error.HTTPError as error:
         if error.code == 404:

@@ -165,6 +165,7 @@ class HostResult:
     ping_ms: float | None = None
     open_ports: list[int] = field(default_factory=list)
     error: str = ""
+    ping_error: str = ""  # Why the ping couldn't be sent. The ports are still checked.
 
     @property
     def up(self) -> bool:
@@ -232,7 +233,14 @@ class BuiltinScan:
 
             for future in as_completed(jobs):
                 result, port = jobs[future]
-                value = future.result()
+                try:
+                    value = future.result()
+                except OSError as error:
+                    if port is not None:
+                        raise
+                    # The ping can't be sent (for example, the system blocks ICMP). Keep checking ports.
+                    result.ping_error = str(error)
+                    value = None
                 if port is None:
                     result.ping_ms = value
                 elif value:
@@ -293,6 +301,8 @@ def rows_from_results(
         ping = (
             f"Ping {result.ping_ms:.1f} ms"
             if result.ping_ms is not None
+            else "Ping not sent"
+            if result.ping_error
             else "No ping reply"
         )
         if not result.open_ports:

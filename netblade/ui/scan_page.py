@@ -476,6 +476,11 @@ class ScanPage(QWidget):
             self.summary.setText(
                 f"{prefix}{up} of {len(results):,} hosts up · {open_ports} open ports · {seconds:.1f} s"
             )
+            ping_error = next((r.ping_error for r in results if r.ping_error), "")
+            if ping_error:
+                self._set_error(
+                    f"Ping couldn't be sent, so only TCP ports were checked. {ping_error}"
+                )
 
         def failed(error: Exception) -> None:
             if request_id == self._request_id:

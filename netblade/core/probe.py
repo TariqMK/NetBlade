@@ -126,13 +126,31 @@ else:
     import os
 
     from icmplib import ICMPRequest, ICMPv4Socket
-    from icmplib.exceptions import TimeoutExceeded
+    from icmplib.exceptions import (
+        ICMPSocketError,
+        SocketPermissionError,
+        TimeoutExceeded,
+    )
 
     _sequence = itertools.count(1)
 
+    BLOCKED_MESSAGE = (
+        "This system blocks ping for normal users. "
+        "Ask your administrator to allow your group in net.ipv4.ping_group_range."
+    )
+
     def probe(ip: str, ttl: int, timeout_s: float = PROBE_TIMEOUT_S) -> ProbeResult:
-        """Send one echo request to an IPv4 address with the given TTL."""
-        sock = ICMPv4Socket(privileged=False)
+        """Send one echo request to an IPv4 address with the given TTL.
+
+        icmplib's socket errors are not OSError, so they are raised as OSError here. Callers then
+        handle every "can't send" case the same way on all systems.
+        """
+        try:
+            sock = ICMPv4Socket(privileged=False)
+        except SocketPermissionError as error:
+            raise PermissionError(BLOCKED_MESSAGE) from error
+        except ICMPSocketError as error:
+            raise OSError(str(error)) from error
         try:
             request = ICMPRequest(
                 destination=ip,
@@ -144,6 +162,8 @@ else:
             reply = sock.receive(request, timeout_s)
         except TimeoutExceeded:
             return ProbeResult(ProbeKind.TIMEOUT)
+        except ICMPSocketError as error:
+            raise OSError(str(error)) from error
         finally:
             sock.close()
 

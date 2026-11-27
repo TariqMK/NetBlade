@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from urllib.parse import urlsplit
 
 from netblade import APP_NAME, __version__
+from netblade.core import web
 
 BOOTSTRAP_URLS = {
     "ip4": "https://data.iana.org/rdap/ipv4.json",
@@ -107,7 +108,7 @@ def _get_json(url: str) -> dict:
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
+        with web.urlopen(request, TIMEOUT_S) as response:
             return json.loads(response.read().decode("utf-8", errors="replace"))
     except urllib.error.HTTPError as error:
         if error.code == 404:
@@ -226,7 +227,7 @@ def public_ip() -> str:
     for url in PUBLIC_IP_URLS:
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         try:
-            with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
+            with web.urlopen(request, TIMEOUT_S) as response:
                 text = response.read().decode().strip()
                 ipaddress.ip_address(text)
                 return text

@@ -82,7 +82,7 @@ class FakeResponse(io.BytesIO):
 def test_check_reads_github_answer(monkeypatch):
     seen = {}
 
-    def fake_urlopen(request, timeout):
+    def fake_urlopen(request, timeout, context=None):
         seen["url"] = request.full_url
         seen["agent"] = request.get_header("User-agent")
         return FakeResponse(json.dumps(release()).encode())
@@ -110,7 +110,7 @@ def test_check_reads_github_answer(monkeypatch):
     ],
 )
 def test_check_failures_have_user_messages(monkeypatch, error, text):
-    def fake_urlopen(request, timeout):
+    def fake_urlopen(request, timeout, context=None):
         raise error
 
     monkeypatch.setattr(update_check.urllib.request, "urlopen", fake_urlopen)
@@ -122,7 +122,7 @@ def test_check_rejects_non_json(monkeypatch):
     monkeypatch.setattr(
         update_check.urllib.request,
         "urlopen",
-        lambda request, timeout: FakeResponse(b"<html>"),
+        lambda request, timeout, context=None: FakeResponse(b"<html>"),
     )
     with pytest.raises(UpdateError, match="can't read"):
         update_check.check("1.0.0")

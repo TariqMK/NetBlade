@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from netblade import APP_NAME, __version__
+from netblade.core import web
 
 # (file name, prefix length in bits, URL). Longer prefixes are more specific and are checked first.
 SOURCES = [
@@ -119,7 +120,7 @@ def download(
             progress(f"Downloading {name}…")
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         try:
-            with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
+            with web.urlopen(request, TIMEOUT_S) as response:
                 data = response.read()
         except (urllib.error.URLError, TimeoutError) as error:
             raise OuiError(

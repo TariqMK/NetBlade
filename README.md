@@ -71,7 +71,7 @@ To move NetBlade to another folder, drive or computer, move the app and `NetBlad
   - **My public IP** (Whois): `api.ipify.org`. It sends no data. The service sees your public IP address.
   - **Download vendor list** (MAC lookup): the IEEE vendor files (`standards-oui.ieee.org`). It sends no data. Lookups then work offline.
   - **Check for updates:** the latest release of NetBlade (`api.github.com`). It sends no data.
-- **TLS cert** asks the operating system if a certificate is trusted, as a browser does. The operating system can download a missing root or intermediate certificate from its vendor during this check.
+- NetBlade asks the operating system if a certificate is trusted, as a browser does. This applies to **TLS cert** and to every HTTPS request that NetBlade makes. The operating system can download a missing root or intermediate certificate from its vendor during this check.
 - IP config, Subnet calc, Notepad, Text diff and Decoder work offline.
 - Text diff and Decoder do not save your text.
 - Notes, the vendor list and the sidebar order are stored in the `NetBlade-data` folder beside the app. NetBlade keeps no data in your user folder or the registry. Its temporary files are deleted when it closes (see [Your Data](#your-data)).
@@ -463,8 +463,7 @@ NetBlade keeps the notes when you close it. They are stored in the `NetBlade-dat
 ## Known limitations
 
 - Ping/trace and Multi-ping use IPv4 only.
-- On Linux, Ping/trace needs unprivileged ICMP. Some distributions block it. If the tool shows an ICMP error, ask your administrator to allow your group in `net.ipv4.ping_group_range`.
-- Ping/trace and Multi-ping on macOS and Linux are not yet tested on real systems.
+- On Linux, Ping/trace and Multi-ping need unprivileged ICMP. Some distributions block it, for example Ubuntu. The tool then shows "This system blocks ping for normal users". Ask your administrator to allow your group in `net.ipv4.ping_group_range`. The built-in scanner then checks TCP ports only.
 - The curl tool needs curl on the system. Windows 10 and later and macOS include it. On Linux, install the `curl` package if it is missing.
 - The curl tool shows the first 1 MB of a body.
 - The copied curl command uses double quotes on Windows. In PowerShell, a value that contains `"` or `$` can need changes.
