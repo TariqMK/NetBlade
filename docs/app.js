@@ -251,7 +251,7 @@ async function wireDownloads() {
     }
     const date = new Date(rel.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     document.getElementById("dl-version").textContent = `${rel.tag_name} · released ${date}`;
-    document.getElementById("hero-meta").textContent = `${rel.tag_name} · Free · No tracking · No installation on Windows`;
+    document.getElementById("hero-meta").textContent = `${rel.tag_name} · Free · Open source · No tracking · No installation on Windows`;
   } catch {
     // Offline or rate-limited: the links still go to the Releases page.
   }
